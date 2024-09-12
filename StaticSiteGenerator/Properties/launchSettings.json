@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "StaticSiteGenerator": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Users\\Jack\\source\\repos\\StaticSkiSite"
+    }
+  }
+}
