@@ -3,7 +3,7 @@ using StaticSiteGenerator.Engine;
 namespace StaticSiteTests
 {
     [TestClass]
-    public class UnitTest1
+    public class MarkdownTests
     {
         [TestMethod]
         public void TestMethod1()

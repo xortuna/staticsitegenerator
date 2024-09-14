@@ -22,7 +22,7 @@ namespace StaticSiteGenerator.Tokens.Functions
             stack.Push();
             stack.Add("partial.name", target.Name);
             StringBuilder sb = new StringBuilder();
-            foreach (var element in TemplateFileParser.ProcessFile(target))
+            foreach (var element in TemplateTokenizer.ProcessFile(target))
             {
                 switch (element.Type)
                 {

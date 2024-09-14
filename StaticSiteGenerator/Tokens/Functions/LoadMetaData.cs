@@ -21,7 +21,7 @@ namespace StaticSiteGenerator.Tokens.Functions
                 throw new ArgumentNullException("args", $"File {fi.FullName} does not exist");
 
             stack.Push();
-            foreach (var metadata in TemplateFileParser.ProcessFile(fi).Where(t => t.Type == TemplateType.Metadata))
+            foreach (var metadata in TemplateTokenizer.ProcessFile(fi).Where(t => t.Type == TemplateType.Metadata))
             {
                 var k = MetaDataParser.Parse(metadata);
                 stack.Add(k.Key, k.Value);

@@ -6,14 +6,22 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text;
+
+class Config
+{
+    public bool Watch = false;
+    public static List<string> AssetFileTypes = new List<string>() { ".css", ".png", ".svg", ".js" };
+}
+
 internal class Program
 {
-    public static List<string> _assetFileTypes = new List<string>() { ".css", ".png", ".svg", ".js" };
+    public static Config _config = new Config();
     public static DirectoryInfo _rootDirectory = null;
     public static DirectoryInfo _currentDirectory = null;
     public static Dictionary<string, string> _partial_list;
     private static void Main(string[] args)
     {
+        ProcessArgs(args);
         _rootDirectory = new DirectoryInfo(Environment.CurrentDirectory);
         _partial_list = new Dictionary<string, string>();
         
@@ -26,6 +34,29 @@ internal class Program
         var output = _rootDirectory.CreateSubdirectory("_www");
         ProcessDirectory(_rootDirectory, output, stack);
         stack.Pop();
+    }
+
+    private static void ProcessArgs(string[] args)
+    {
+        for (int i = 0; i < args.Length; ++i)
+        {
+            var arg = args[i];
+            switch (arg)
+            {
+                case "-w":
+                    _config.Watch = true;
+                    break;
+                case "-t":
+                    if (arg.Length <= i + 1) 
+                        continue;
+                    var toAdd = args[i + 1].Split(",");
+                    Config.AssetFileTypes.AddRange(toAdd);
+                    break;
+                default:
+                    Console.WriteLine($"Unknown argument {arg}");
+                    break;
+            }
+        }
     }
 
     private static void ProcessSpecialFolders()
@@ -61,7 +92,7 @@ internal class Program
         if (Path.Exists(Path.Join(directory.FullName, "__template.html")))
         {
             //Load template
-            var template = TemplateFileParser.ProcessFile(new FileInfo(Path.Join(directory.FullName, "__template.html")));
+            var template = TemplateTokenizer.ProcessFile(new FileInfo(Path.Join(directory.FullName, "__template.html")));
 
             //Process MD files using template
             foreach (var item in directory.EnumerateFiles("*.md"))
@@ -78,7 +109,7 @@ internal class Program
         }
 
         //CONTENT
-        foreach (var item in directory.EnumerateFiles().Where(r=> _assetFileTypes.Contains(r.Extension)))
+        foreach (var item in directory.EnumerateFiles().Where(r=> Config.AssetFileTypes.Contains(r.Extension)))
         {
             ProcessAsset(item, output);
         }
@@ -105,7 +136,7 @@ internal class Program
         Console.WriteLine($"\tCopying {item.Name}");
         item.CopyTo(Path.Join(output.FullName, item.Name));
     }
-    private static void ProcessMarkdownFile(IEnumerable<TemplateElement> template, FileInfo fileInfo, DirectoryInfo outputDir, DictionaryStack stack)
+    private static void ProcessMarkdownFile(IEnumerable<TemplateToken> template, FileInfo fileInfo, DirectoryInfo outputDir, DictionaryStack stack)
     {
         stack.Push();
         stack.Add("page.fullname", fileInfo.FullName);
@@ -125,7 +156,7 @@ internal class Program
         Console.WriteLine($"\tGenerating {stack.Get("page.path")}");
 
         StringBuilder sb = new StringBuilder();
-        foreach (var element in TemplateFileParser.ProcessFile(fileInfo))
+        foreach (var element in TemplateTokenizer.ProcessFile(fileInfo))
         {
             switch (element.Type)
             {
@@ -194,7 +225,7 @@ internal class Program
         Console.WriteLine($"\tGenerating {stack.Get("page.path")}");
         using (var sw = new StreamWriter(target.FullName))
         {
-            foreach (var element in TemplateFileParser.ProcessFile(fileInfo))
+            foreach (var element in TemplateTokenizer.ProcessFile(fileInfo))
             {
                 switch (element.Type)
                 {
