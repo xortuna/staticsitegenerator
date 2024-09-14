@@ -2,6 +2,7 @@
   "profiles": {
     "StaticSiteGenerator": {
       "commandName": "Project",
+      "commandLineArgs": "-w",
       "workingDirectory": "C:\\Users\\Jack\\source\\repos\\StaticSkiSite"
     }
   }

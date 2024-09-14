@@ -1,6 +1,8 @@
 ﻿using StaticSiteGenerator;
 using StaticSiteGenerator.Engine;
+using StaticSiteGenerator.Processor;
 using StaticSiteGenerator.Tokens.Functions;
+using StaticSiteGenerator.Tools;
 using System.Data.Common;
 using System.IO;
 using System.Reflection;
@@ -10,7 +12,7 @@ using System.Text;
 class Config
 {
     public bool Watch = false;
-    public static List<string> AssetFileTypes = new List<string>() { ".css", ".png", ".svg", ".js" };
+    public List<string> AssetFileTypes = new List<string>() { ".css", ".png", ".svg", ".js" };
 }
 
 internal class Program
@@ -19,6 +21,7 @@ internal class Program
     public static DirectoryInfo _rootDirectory = null;
     public static DirectoryInfo _currentDirectory = null;
     public static Dictionary<string, string> _partial_list;
+
     private static void Main(string[] args)
     {
         ProcessArgs(args);
@@ -30,11 +33,18 @@ internal class Program
 
         DictionaryStack stack = new DictionaryStack();
         stack.Push();
-        stack.Add("root.fullpath", _rootDirectory.FullName);
-        var output = _rootDirectory.CreateSubdirectory("_www");
-        ProcessDirectory(_rootDirectory, output, stack);
+            stack.Add("root.fullpath", _rootDirectory.FullName);
+            var output = _rootDirectory.CreateSubdirectory("_www");
+            stack.Push(); 
+                ProcessDirectory(_rootDirectory, output, stack);
+            stack.Pop();
+
+            if (_config.Watch)
+                StartWatch(_rootDirectory, output, stack);
         stack.Pop();
+
     }
+
 
     private static void ProcessArgs(string[] args)
     {
@@ -50,7 +60,7 @@ internal class Program
                     if (arg.Length <= i + 1) 
                         continue;
                     var toAdd = args[i + 1].Split(",");
-                    Config.AssetFileTypes.AddRange(toAdd);
+                    _config.AssetFileTypes.AddRange(toAdd);
                     break;
                 default:
                     Console.WriteLine($"Unknown argument {arg}");
@@ -80,11 +90,96 @@ internal class Program
             Directory.Delete(Path.Join(_rootDirectory.FullName, "_www"), true);
         }
     }
+
+    private static void StartWatch(DirectoryInfo root, DirectoryInfo output, DictionaryStack stack)
+    {
+        FileSystemWatcher watcher = new FileSystemWatcher(root.FullName);
+        watcher.NotifyFilter = NotifyFilters.LastWrite;
+        watcher.IncludeSubdirectories = true;
+        watcher.EnableRaisingEvents = true;
+        watcher.Changed += (sender, e) =>
+        {
+            var currentFile = new FileInfo(e.FullPath);
+            var directory = currentFile.Directory;
+            var relativePath = PathTools.GetRelativePath(root, directory);
+            if (relativePath.Length == 0 || relativePath.StartsWith("\\_") || relativePath.StartsWith("\\."))
+                return;
+            var relativeOut = new DirectoryInfo(Path.Join(output.FullName, relativePath));
+
+            WaitForUnlock(currentFile);
+            stack.Push();
+            stack.Add("directory.fullname", directory.FullName);
+            stack.Add("directory.path", relativePath.ToUrlPath());
+            stack.Add("directory.name", directory.Name);
+
+            if (currentFile.Name == "__template.html")
+            {
+                //Special files
+                var template = TemplateTokenizer.ProcessFile(new FileInfo(Path.Join(directory.FullName, "__template.html")));
+
+                //Process MD files using template
+                foreach (var item in directory.EnumerateFiles("*.md"))
+                {
+                    MarkdownFile.Process(item, relativeOut, stack, template);
+                }
+            }
+            else if(currentFile.Extension == ".md")
+            {
+                //Special files
+                var template = TemplateTokenizer.ProcessFile(new FileInfo(Path.Join(directory.FullName, "__template.html")));
+
+                //Process MD files using template
+                MarkdownFile.Process(currentFile, relativeOut, stack, template);
+            }
+            else if (currentFile.Extension == ".html") { 
+                    if (!relativeOut.Exists)
+                        relativeOut.Create();
+                    HtmlFile.Process(currentFile, relativeOut, stack);
+
+            }
+            else if (_config.AssetFileTypes.Contains(currentFile.Extension))
+            {
+                if (!relativeOut.Exists)
+                    relativeOut.Create();
+                AssetFile.Process(currentFile, relativeOut, stack);
+            }
+
+            stack.Pop();
+        };
+        Console.WriteLine("Watching directory... Press enter to exit");
+        Console.ReadLine();
+    }
+
+    private static void WaitForUnlock(FileInfo currentFile)
+    {
+        long lastLength = -1;
+        while (true)
+        {
+            if (lastLength == currentFile.Length)
+            {
+                try
+                {
+                    using (var r = currentFile.OpenRead())
+                    {
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Waiting for {currentFile.Name} to unlock");
+                }
+                break;
+            }
+            lastLength = currentFile.Length;
+            Thread.Sleep(150);
+        }
+    }
+
     private static void ProcessDirectory(DirectoryInfo directory, DirectoryInfo output, DictionaryStack stack)
     {
         _currentDirectory = directory;
         stack.Add("directory.fullname", directory.FullName);
-        stack.Add("directory.path", directory.FullName.Substring(_rootDirectory.FullName.Length).Replace('\\', '/'));
+        stack.Add("directory.path", PathTools.GetRelativePath(_rootDirectory, _currentDirectory).ToUrlPath());
         stack.Add("directory.name", directory.Name);
 
         Console.WriteLine($"-- {directory.FullName}");
@@ -97,7 +192,7 @@ internal class Program
             //Process MD files using template
             foreach (var item in directory.EnumerateFiles("*.md"))
             {
-                ProcessMarkdownFile(template, item, output, stack);
+                MarkdownFile.Process(item, output, stack, template);
             }
         }
 
@@ -105,13 +200,13 @@ internal class Program
         foreach (var item in directory.EnumerateFiles("*.html"))
         {
             if (item.Name.StartsWith("__")) continue;
-            ProcessHtmlFile(item, output, stack);
+            HtmlFile.Process(item, output, stack);
         }
 
         //CONTENT
-        foreach (var item in directory.EnumerateFiles().Where(r=> Config.AssetFileTypes.Contains(r.Extension)))
+        foreach (var item in directory.EnumerateFiles().Where(r=> _config.AssetFileTypes.Contains(r.Extension)))
         {
-            ProcessAsset(item, output);
+            AssetFile.Process(item, output, stack);
         }
 
 
@@ -131,130 +226,4 @@ internal class Program
         }
     }
 
-    private static void ProcessAsset(FileInfo item, DirectoryInfo output)
-    {
-        Console.WriteLine($"\tCopying {item.Name}");
-        item.CopyTo(Path.Join(output.FullName, item.Name));
-    }
-    private static void ProcessMarkdownFile(IEnumerable<TemplateToken> template, FileInfo fileInfo, DirectoryInfo outputDir, DictionaryStack stack)
-    {
-        stack.Push();
-        stack.Add("page.fullname", fileInfo.FullName);
-        stack.Add("page.name", fileInfo.Name);
-        stack.Add("page.path", fileInfo.FullName.Substring(_rootDirectory.FullName.Length).Replace('\\', '/'));
-
-        var templateOutputDir = new DirectoryInfo(Path.Join(outputDir.FullName, GetUrl.Decamel(fileInfo.Name.Substring(0, fileInfo.Name.Length - fileInfo.Extension.Length))));
-        if (!templateOutputDir.Exists)
-        {
-            templateOutputDir.Create();
-        }
-        
-
-        var target = new FileInfo(Path.Combine(templateOutputDir.FullName, "index.html"));
-        stack.Add("output.fullname", target.FullName);
-        
-        Console.WriteLine($"\tGenerating {stack.Get("page.path")}");
-
-        StringBuilder sb = new StringBuilder();
-        foreach (var element in TemplateTokenizer.ProcessFile(fileInfo))
-        {
-            switch (element.Type)
-            {
-                case TemplateType.Content:
-                    sb.Append(element.Content);
-                    break;
-                case TemplateType.Metadata:
-                    var md = MetaDataParser.Parse(element);
-                    Console.ForegroundColor = ConsoleColor.Blue;
-                    Console.WriteLine($"\t\tMetadata set {md.Key} - {md.Value}");
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    stack.Add(md.Key, md.Value);
-                    break;
-            }
-        }
-        stack.Add("content", MarkdownParser.CompileText(sb.ToString()));
-
-        using (var sw = new StreamWriter(target.FullName))
-        {
-            foreach (var element in template)
-            {
-                switch (element.Type)
-                {
-                    case TemplateType.Content:
-                        sw.Write(element.Content);
-                        break;
-                    case TemplateType.Token:
-                        var func = TokenParser.Compile(element.Content);
-                        try
-                        {
-                            stack.Push();
-                            sw.Write(func.Execute(stack));
-                            stack.Pop();
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex.ToString());
-                            Console.WriteLine($"\t\tat {target.FullName}:line {element.Line} {element.Content}");
-                        }
-                        break;
-                    case TemplateType.Metadata:
-                        var md = MetaDataParser.Parse(element);
-                        Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.WriteLine($"\t\tMetadata set {md.Key} - {md.Value}");
-                        Console.ForegroundColor = ConsoleColor.Gray;
-                        stack.Add(md.Key, md.Value);
-                        break;
-                }
-            }
-        }
-        stack.Pop();
-
-    }
-
-
-    private static void ProcessHtmlFile(FileInfo fileInfo, DirectoryInfo outputDir, DictionaryStack stack)
-    {
-        stack.Push();
-        stack.Add("page.fullname", fileInfo.FullName);
-        stack.Add("page.name", fileInfo.Name);
-        stack.Add("page.path", fileInfo.FullName.Substring(_rootDirectory.FullName.Length).Replace('\\','/'));
-
-        var target = new FileInfo(Path.Combine(outputDir.FullName, fileInfo.Name));
-        stack.Add("output.fullname", target.FullName);
-
-        Console.WriteLine($"\tGenerating {stack.Get("page.path")}");
-        using (var sw = new StreamWriter(target.FullName))
-        {
-            foreach (var element in TemplateTokenizer.ProcessFile(fileInfo))
-            {
-                switch (element.Type)
-                {
-                    case TemplateType.Content:
-                        sw.Write(element.Content);
-                        break;
-                    case TemplateType.Token:
-                        var func = TokenParser.Compile(element.Content);
-                        try
-                        {
-                            stack.Push();
-                            sw.Write(func.Execute(stack));
-                            stack.Pop();
-                        }
-                        catch (Exception ex) { 
-                            Console.WriteLine(ex.ToString());
-                            Console.WriteLine($"\t\tat {target.FullName}:line {element.Line} {element.Content}");
-                        }
-                        break;
-                    case TemplateType.Metadata:
-                        var md = MetaDataParser.Parse(element);
-                        Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.WriteLine($"\t\tMetadata set {md.Key} - {md.Value}");
-                        Console.ForegroundColor = ConsoleColor.Gray;
-                        stack.Add(md.Key, md.Value);
-                        break;
-                }
-            }
-        }
-        stack.Pop();
-    }
 }
