@@ -11,7 +11,7 @@ namespace StaticSiteGenerator.Tokens.Functions
         }
         public override string Execute(DictionaryStack stack)
         {
-            return string.Join(",", ExecuteList(stack));
+            return string.Join("", ExecuteList(stack));
         }
 
         public IEnumerable<string> ExecuteList(DictionaryStack stack)

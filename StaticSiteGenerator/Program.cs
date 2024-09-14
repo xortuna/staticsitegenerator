@@ -100,9 +100,10 @@ internal class Program
         watcher.Changed += (sender, e) =>
         {
             var currentFile = new FileInfo(e.FullPath);
+            
             var directory = currentFile.Directory;
             var relativePath = PathTools.GetRelativePath(root, directory);
-            if (relativePath.Length == 0 || relativePath.StartsWith("\\_") || relativePath.StartsWith("\\."))
+            if (currentFile.Extension == "" || relativePath.StartsWith("\\_") || relativePath.StartsWith("\\."))
                 return;
             var relativeOut = new DirectoryInfo(Path.Join(output.FullName, relativePath));
 
