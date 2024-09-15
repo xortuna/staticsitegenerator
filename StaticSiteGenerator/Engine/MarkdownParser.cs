@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HeyRed.MarkdownSharp;
+using StaticSiteGenerator.Engine.MarkdownExtensions;
 namespace StaticSiteGenerator.Engine
 {
     public static class MarkdownParser
@@ -13,6 +14,8 @@ namespace StaticSiteGenerator.Engine
         public static string CompileText(string markdown)
         {
             Markdown mark = new Markdown();
+            mark.AddExtension(new Small());
+            mark.AddExtension(new Achivement());
             return mark.Transform(markdown);
         }
     }

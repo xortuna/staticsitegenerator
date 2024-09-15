@@ -1,16 +1,11 @@
 ﻿using StaticSiteGenerator.Tokens.Functions;
 using StaticSiteGenerator.Tokens.Types;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace StaticSiteGenerator.Engine
 {
 
-    abstract class Token()
+    public abstract class Token()
     {
         public abstract string Execute(DictionaryStack stack);
     }
@@ -21,9 +16,7 @@ namespace StaticSiteGenerator.Engine
         public FunctionToken(List<Token> args) { this.args = args; }
     }
 
-
-
-    internal static class TokenParser
+    public static class TokenParser
     {
         enum ParserState
         {
@@ -37,140 +30,247 @@ namespace StaticSiteGenerator.Engine
         }
         public static Token Compile(string escape)
         {
+            return CompileV2(escape, out int crap);
+        }
+        enum ParserState2
+        {
+            DetectStart, 
+            ReadParamaters,
+            StringLitral,
+            LinqFunction,
+            CheckForOperator,
+            HandleOperator,
+        }
+        public static Token CompileV2(string token,  out int parsedLength, List<Token>? preInject = null)
+        {
             string functionName = "invalid";
-            List<Token> parameters = new List<Token>();
+            List<Token> parameters = new List<Token>(preInject ?? Enumerable.Empty<Token>());
             StringBuilder sb = new StringBuilder();
-            ParserState state = ParserState.FunctionName;
-            double depth = 0;
-            bool escaped = false;
-            foreach (var c in escape)
+            ParserState2 state = ParserState2.DetectStart;
+            int i = 0;
+            for(; i < token.Length; ++i)
             {
+                char c = token[i];
                 switch (state)
                 {
-                    case ParserState.FunctionName:
-                        if (c == ' ')
+                    case ParserState2.DetectStart:
+                        if (c == ' ' || c == '\n' || c == '\r')
                             continue;
                         if (c == '(')
                         {
-                            state = ParserState.ParameterAnalisis;
+                            state = ParserState2.ReadParamaters;
                             functionName = sb.ToString();
+                            if(functionName == "")
+                            {
+                                functionName = "bracket";
+                            }
                             sb.Clear();
+                        }
+                        else if(c == '\'')
+                        {
+                            state = ParserState2.StringLitral;
+                            sb.Clear();
+                        }
+                        else if (IsOperator(c))
+                        {
+                            if (sb.ToString().All(char.IsDigit))
+                            {
+                                var val = int.Parse(sb.ToString());
+                                parameters.Add(new IntLiteralToken(val));
+                                functionName = GetOperatorFunction(c);
+                                state = ParserState2.HandleOperator;
+                                continue;
+                            }
+
+                        }
+                        else if(c == ',' || c == ')')
+                        {
+                            parsedLength = i -1;
+                            //detect litral value
+                            if(sb.Length == 0)
+                                return new NullToken();
+                            if (sb.ToString().All(char.IsDigit))
+                            {
+                                var val = int.Parse(sb.ToString());
+                                return new IntLiteralToken(val);
+                            }
+                            if(sb.Equals("true"))
+                            {
+                                return new StringLiteralToken("true");
+                            }
+                            return new NullToken();
                         }
                         else
                             sb.Append(c);
                         break;
-                    case ParserState.ParameterAnalisis:
-                        if (c == ' ')
-                            continue;
-                        if (c == '\'')
-                        {
-                            if (sb.Length != 0)
-                                throw new Exception($"Unexpected charaters {sb} before string litral");
-                            state = ParserState.StringLitral;
-                            continue;
-                        }
-                        if (c == ')' || c == ',')
-                        {
-                            //Litral detection
-                            if (sb.ToString() == "true") { }
-
-                            parameters.Add(new NullToken());
-                            state = c == ')' ? ParserState.End : ParserState.ParameterAnalisis;
-                            sb.Clear();
-                            continue;
-                        }
-                        else if (c == '(')
-                        {
-                            state = ParserState.SubFunction;
-                            depth++;
-                        }
-                        sb.Append(c);
-                        break;
-                    case ParserState.StringLitral:
-                        if (c == '\'')
-                        {
-                            parameters.Add(new StringLiteralToken(sb.ToString()));
-                            sb.Clear();
-                            state = ParserState.EndParamater;
-                            break;
-                        }
-                        sb.Append(c);
-                        break;
-                    case ParserState.EndParamater:
-                        if (c == ')')
-                        {
-                            state = ParserState.End;
-                        }
+                    case ParserState2.ReadParamaters:
                         if (c == ',')
-                        {
-                            state = ParserState.ParameterAnalisis;
-                        }
-                        break;
-                    case ParserState.SubFunction:
-                        sb.Append(c);
+                            continue;
                         if (c == ')')
                         {
-                            depth--;
-                            if (depth == 0)
-                            {
-                                parameters.Add(Compile(sb.ToString()));
-                                sb.Clear();
-                                state = ParserState.EndParamater;
-                            }
+                            state = ParserState2.CheckForOperator;
+                            continue;
                         }
-                        else if (c == '(')
-                            depth++;
 
+                        var param = CompileV2(token.Substring(i), out parsedLength);
+                        parameters.Add(param);
+                        i = i + parsedLength;
                         break;
-                    case ParserState.End:
-                        if (c != ' ')
-                            throw new Exception($"Unexpected charater {c}");
+                    case ParserState2.StringLitral:
+                        if (c == '\'')
+                        {
+                            functionName = "string";
+                            parameters.Add(new StringLiteralToken(sb.ToString()));
+
+                            state = ParserState2.CheckForOperator;
+                            continue;
+                        }
+                        sb.Append(c);
                         break;
+                    case ParserState2.CheckForOperator:
+                        //Peek
+                        if (c == '.')
+                        {
+                            state = ParserState2.LinqFunction;
+                            continue;
+                        }
+                        if (IsOperator(c))
+                        {
+                            //Swap the paramater order so the linq function runs first, and this is sent as a paramater
+                            var lhs = ResolveFunction(functionName, parameters);
+                            parameters = new List<Token>();
+                            parameters.Add(lhs);
+                            functionName = GetOperatorFunction(c);
+                            state = ParserState2.HandleOperator;
+                            continue;
+                        }
+                        else 
+                            i--;
+                        goto end;
+                    case ParserState2.HandleOperator:
+                        var rhs = CompileV2(token.Substring(i), out parsedLength);
+                        parameters.Add(rhs);
+                        goto end;
+                    case ParserState2.LinqFunction:
+                        {
+                            //Swap the paramater order so the linq function runs first, and this is sent as a paramater
+                            var previousToken = ResolveFunction(functionName, parameters);
+                            var linqToken = CompileV2(token.Substring(i), out parsedLength, new List<Token> { previousToken });
+                            parsedLength = parsedLength + i;
+                            return linqToken;
+                        }
                 }
             }
-
+            end:
+            parsedLength = i;
+            if(functionName == "invalid")
+            {
+                if (sb.ToString().All(char.IsDigit))
+                {
+                    var val = int.Parse(sb.ToString());
+                    return new IntLiteralToken(val);
+                }
+                if (sb.Equals("true"))
+                {
+                    return new StringLiteralToken("true");
+                }
+                return new NullToken();
+            }
             return ResolveFunction(functionName, parameters);
         }
 
+        private static bool IsOperator(char c)
+        {
+            return GetOperatorFunction(c) != "null";
+        }
+        private static string GetOperatorFunction(char c)
+        {
+            switch (c)
+            {
+                case '+': return "add";
+                case '-': return "subtract";
+                case '/': return "divide";
+                case '*': return "multiply";
+                case '=': return "equals";
+                default:
+                    return "null";
+            }
+        }
         private static Token ResolveFunction(string functionName, List<Token> parameters)
         {
-            Token function;
             switch (functionName.ToLower())
             {
+                case "bracket":
+                    return parameters[0];
+                case "double":
+                    return parameters[0];
+                case "int":
+                    return parameters[0];
+                case "string":
+                    return parameters[0];
+
+                //Math
+                case "add":
+                    return new Add(parameters);
+                case "subtract":
+                    return new Subtract(parameters);
+                case "divide":
+                    return new Divide(parameters);
+                case "multiply":
+                    return new Multiply(parameters);
+
+                //File manipulation
                 case "include":
-                    function = new Include(parameters);
-                    break;
-                case "var":
-                    function = new Var(parameters);
-                    break;
-                case "assign":
-                    function = new Assign(parameters);
-                    break;
-                case "equals":
-                    function = new Equals(parameters);
-                    break;
-                case "foreach":
-                    function = new Foreach(parameters);
-                    break;
-                case "load_metadata":
-                    function = new LoadMetaData(parameters);
-                    break;
-                case "list_files":
-                    function = new ListFiles(parameters);
-                    break;
+                    return new Include(parameters);
                 case "get_url":
-                    function = new GetUrl(parameters);
-                    break;
+                    return new GetUrl(parameters);
+
+                //String manipulation
+                case "reverse":
+                    return new Reverse(parameters);
+                case "concat":
+                    return new Concat(parameters);
+
+                //Meta Data maipulation
+                case "var":
+                    return new Var(parameters);
+                case "assign":
+                    return new Assign(parameters);
+                case "load_metadata":
+                    return new LoadMetaData(parameters);
+
+                //Conditionals
+                case "equals":
+                    return new Equals(parameters);
+                case "notequal":
+                case "notequals":
+                    return new DoesNotEqual(parameters);
                 case "if":
-                    function = new If(parameters);
-                    break;
+                    return new If(parameters);
                 case "starts_with":
-                    function = new StartsWith(parameters);
-                    break;
+                    return new StartsWith(parameters);
+
+                // Array generator
+                case "to_array":
+                    return new ToArray(parameters);
+                case "list_files":
+                    return new ListFiles(parameters);
+
+                //Array functions
+                case "join":
+                    return new Join(parameters);
+                case "foreach":
+                    return new Foreach(parameters);
+                case "where":
+                    return new Where(parameters);
+                case "skip":
+                    return new Skip(parameters);
+                case "take":
+                    return new Take(parameters);
+                case "shuffle":
+                    return new Shuffle(parameters);
                 default: throw new Exception($"Invalid Function {functionName}");
             }
-
-            return function;
         }
     }
 }

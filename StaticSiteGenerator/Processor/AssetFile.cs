@@ -11,7 +11,7 @@ namespace StaticSiteGenerator.Processor
         internal static void Process(FileInfo item, DirectoryInfo output, DictionaryStack stack)
         {
             Console.WriteLine($"\tCopying {item.Name}");
-            item.CopyTo(Path.Join(output.FullName, item.Name));
+            item.CopyTo(Path.Join(output.FullName, item.Name), true);
         }
 
     }

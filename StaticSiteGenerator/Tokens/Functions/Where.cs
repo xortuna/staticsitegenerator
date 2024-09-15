@@ -3,32 +3,30 @@ using StaticSiteGenerator.Tokens.Types;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
-    internal class Foreach : FunctionToken, IStringArray
+    internal class Where : FunctionToken, IStringArray
     {
-        public Foreach(List<Token> args) : base(args)
+        public Where(List<Token> args) : base(args)
         {
-            if (args.Count < 2 || args.Count > 3) throw new ArgumentException($"Invalid arguments for foreach expected 2-3 (array, print, {{array variable}}) got {args.Count}");
+            if (args.Count < 2 || args.Count > 3) throw new ArgumentException("Invalid arguments for where expected 2-3 (array, evaulator, {array variable}");
         }
         public override string Execute(DictionaryStack stack)
         {
-            return string.Join("", ExecuteList(stack));
+            return string.Join(",", ExecuteList(stack));
         }
 
         public IEnumerable<string> ExecuteList(DictionaryStack stack)
         {
-
-            string? keyName = ((args.Count == 3) ? args[2].Execute(stack) : "foreach") + ".key";
-            string? indexName = ((args.Count == 3) ? args[2].Execute(stack) : "foreach") + ".index";
-            int index = 0; 
+            string? keyName = (args.Count == 3) ? args[2].Execute(stack) : "where.key";
             if (args[0] is IStringArray sa)
             {
                 foreach (var t in sa.ExecuteList(stack))
                 {
-                    index++;
                     stack.Push();
-                    stack.Add(indexName, index.ToString());
                     stack.Add(keyName, t);
-                    yield return args[1].Execute(stack);
+                    if(args[1].Execute(stack) == "true")
+                    {
+                        yield return t;
+                    }
                     stack.Pop();
                 }
             }
@@ -37,11 +35,12 @@ namespace StaticSiteGenerator.Tokens.Functions
                 var arg = args[0].Execute(stack);
                 foreach (var t in arg.Split(','))
                 {
-                    index++;
                     stack.Push();
-                    stack.Add(indexName, index.ToString());
                     stack.Add(keyName, t);
-                    yield return args[1].Execute(stack);
+                    if (args[1].Execute(stack) == "true")
+                    {
+                        yield return t;
+                    }
                     stack.Pop();
                 }
             }
