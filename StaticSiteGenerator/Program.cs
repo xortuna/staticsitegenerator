@@ -105,6 +105,8 @@ internal class Program
             var relativePath = PathTools.GetRelativePath(root, directory);
             if (currentFile.Extension == "" || relativePath.StartsWith("\\_") || relativePath.StartsWith("\\."))
                 return;
+            if (!_config.AssetFileTypes.Contains(currentFile.Extension) && currentFile.Extension != ".md" && currentFile.Extension != ".html")
+                return;
             var relativeOut = new DirectoryInfo(Path.Join(output.FullName, relativePath));
 
             WaitForUnlock(currentFile);
@@ -214,7 +216,7 @@ internal class Program
         //SUB FOLDERS
         foreach (var childDir in directory.EnumerateDirectories())
         {
-            if(childDir.Name.StartsWith("_") || childDir.Attributes.HasFlag(FileAttributes.Hidden)) continue;
+            if(childDir.Name.StartsWith("_") || childDir.Name.StartsWith(".")  || childDir.Attributes.HasFlag(FileAttributes.Hidden)) continue;
 
             var subOutput = new DirectoryInfo(Path.Join(output.FullName, childDir.Name));
             if (!subOutput.Exists)

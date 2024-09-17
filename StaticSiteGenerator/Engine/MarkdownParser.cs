@@ -16,6 +16,7 @@ namespace StaticSiteGenerator.Engine
             Markdown mark = new Markdown();
             mark.AddExtension(new Small());
             mark.AddExtension(new Achivement());
+            mark.AddExtension(new DivWrappedImage());
             return mark.Transform(markdown);
         }
     }
