@@ -7,7 +7,7 @@ namespace StaticSiteGenerator.Tokens.Functions
     {
         public ListFiles(List<Token> args) : base(args)
         {
-            if (args.Count < 1 || args.Count > 2) throw new ArgumentException("Invalid arguments for listfiles expected 2-3 (path, {filter}");
+            if (args.Count < 1 || args.Count > 2) throw new ArgumentException("Invalid arguments for listfiles expected 2-3 (path, {filter})");
         }
         public override string Execute(DictionaryStack stack)
         {
@@ -23,7 +23,7 @@ namespace StaticSiteGenerator.Tokens.Functions
                 throw new Exception($"Path {di.FullName} does not exist");
 
             string patern = args.Count == 2 ? args[1].Execute(stack) : "*";
-            return di.EnumerateFiles(patern).Select(r => r.FullName);
+            return di.EnumerateFiles(patern).OrderByDescending(r=>r.CreationTime).Select(r => r.FullName);
         }
     }
 }

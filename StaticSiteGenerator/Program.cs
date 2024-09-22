@@ -12,7 +12,9 @@ using System.Text;
 class Config
 {
     public bool Watch = false;
-    public List<string> AssetFileTypes = new List<string>() { ".css", ".png", ".svg", ".js" };
+    public bool SiteMap = false;
+    public string BaseUrl = "http://example.com";
+    public List<string> AssetFileTypes = new List<string>() { ".css", ".png", ".svg", ".js", ".webp" };
 }
 
 internal class Program
@@ -39,8 +41,11 @@ internal class Program
                 ProcessDirectory(_rootDirectory, output, stack);
             stack.Pop();
 
-            if (_config.Watch)
-                StartWatch(_rootDirectory, output, stack);
+        if (_config.SiteMap)
+            SitemapGenerator.GenerateMap(_config.BaseUrl, output);
+
+        if (_config.Watch)
+            StartWatch(_rootDirectory, output, stack);
         stack.Pop();
 
     }
@@ -57,10 +62,18 @@ internal class Program
                     _config.Watch = true;
                     break;
                 case "-t":
-                    if (arg.Length <= i + 1) 
+                    if (args.Length <= i + 1) 
                         continue;
                     var toAdd = args[i + 1].Split(",");
                     _config.AssetFileTypes.AddRange(toAdd);
+                    i++;
+                    break;
+                case "-x":
+                    if (args.Length <= i + 1)
+                        continue;
+                    _config.SiteMap = true;
+                    _config.BaseUrl = args[i+1];
+                    i++;
                     break;
                 default:
                     Console.WriteLine($"Unknown argument {arg}");
