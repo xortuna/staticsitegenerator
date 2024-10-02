@@ -6,9 +6,9 @@ using StaticSiteGenerator.Tokens.Types;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+    [FunctionTokenAttribute("multiply", 2, 2)]
     internal class Multiply : NumericOperator
     {
-
         public Multiply(List<Token> args) : base(args)
         {
 

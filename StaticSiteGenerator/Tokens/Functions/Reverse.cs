@@ -4,8 +4,10 @@ using StaticSiteGenerator.Tokens.Types;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+    [FunctionTokenAttribute("reverse", 1, 1)]
     internal class Reverse : FunctionToken, IStringArray
     {
+        protected override string Identifier => "reverse";
         public Reverse(List<Token> args) : base(args) {
             if (args.Count != 1) throw new ArgumentException("Invalid arguments for reverse, expected 1 (string)");
         }

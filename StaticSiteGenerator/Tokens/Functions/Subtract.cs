@@ -6,6 +6,7 @@ using StaticSiteGenerator.Tokens.Types;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+    [FunctionTokenAttribute("subtract", 2, 2)]
     internal class Subtract : NumericOperator
     {
 

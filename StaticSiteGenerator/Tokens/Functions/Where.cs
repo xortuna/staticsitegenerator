@@ -3,8 +3,11 @@ using StaticSiteGenerator.Tokens.Types;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+    [FunctionTokenAttribute("where", 2, 3)]
     internal class Where : FunctionToken, IStringArray
     {
+        protected override string Identifier => "where";
+
         public Where(List<Token> args) : base(args)
         {
             if (args.Count < 2 || args.Count > 3) throw new ArgumentException("Invalid arguments for where expected 2-3 (array, evaulator, {array variable}");

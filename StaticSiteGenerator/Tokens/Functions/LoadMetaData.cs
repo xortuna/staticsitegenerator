@@ -2,8 +2,11 @@
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+    [FunctionTokenAttribute("load_metadata", 2, 2)]
     internal class LoadMetaData : FunctionToken
     {
+
+        protected override string Identifier => "load_metadata";
         /// <summary>
         /// Reads the metadata into memory
         /// </summary>

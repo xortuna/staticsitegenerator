@@ -6,9 +6,9 @@ using StaticSiteGenerator.Tokens.Types;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+    [FunctionTokenAttribute("add", 2, 2)]
     internal class Add : NumericOperator
     {
-
         public Add(List<Token> args) : base(args)
         {
 

@@ -29,6 +29,7 @@ namespace StaticSiteGenerator
     {
         public static Config _config = new Config();
         public static DirectoryInfo _rootDirectory = null;
+        public static DirectoryInfo _rootOutputDirectory = null;
         public static DirectoryInfo _currentDirectory = null;
         public static Dictionary<string, string> _partial_list;
 
@@ -45,16 +46,18 @@ namespace StaticSiteGenerator
             DictionaryStack stack = new DictionaryStack();
             stack.Push();
             stack.Add("root.fullpath", _rootDirectory.FullName);
-            var output = _rootDirectory.CreateSubdirectory("_www");
+            stack.Add("root.url", _config.BaseUrl);
+            _rootOutputDirectory = _rootDirectory.CreateSubdirectory("_www");
+            stack.Add("root.output", _rootOutputDirectory.FullName);
             stack.Push();
-            ProcessDirectory(_rootDirectory, output, stack);
+            ProcessDirectory(_rootDirectory, _rootOutputDirectory, stack);
             stack.Pop();
 
             if (_config.SiteMap)
-                SitemapGenerator.GenerateMap(_config.BaseUrl, output);
+                SitemapGenerator.GenerateMap(_config.BaseUrl, _rootOutputDirectory);
 
             if (_config.Watch)
-                StartWatch(_rootDirectory, output, stack);
+                StartWatch(_rootDirectory, _rootOutputDirectory, stack);
             stack.Pop();
 
         }

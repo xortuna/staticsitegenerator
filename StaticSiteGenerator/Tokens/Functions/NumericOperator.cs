@@ -8,6 +8,7 @@ namespace StaticSiteGenerator.Tokens.Functions
 {
     abstract class NumericOperator : FunctionToken, IInt, IDouble
     {
+        protected override string Identifier => Name;
         protected abstract string Name { get; }
         public NumericOperator(List<Token> args) : base(args)
         {

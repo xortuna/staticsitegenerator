@@ -13,9 +13,9 @@ namespace StaticSiteGenerator.Processor
         internal static void Process(FileInfo fileInfo, DirectoryInfo outputDir, DictionaryStack stack, IEnumerable<TemplateToken> template)
         {
             stack.Push();
-            stack.Add("page.fullname", fileInfo.FullName);
-            stack.Add("page.name", fileInfo.Name);
-            stack.Add("page.path", fileInfo.FullName.Substring(Program._rootDirectory.FullName.Length).Replace('\\', '/'));
+            stack.Add("input.fullname", fileInfo.FullName);
+            stack.Add("input.name", fileInfo.Name);
+            stack.Add("input.path", fileInfo.FullName.Substring(Program._rootDirectory.FullName.Length).Replace('\\', '/'));
 
             var templateOutputDir = new DirectoryInfo(Path.Join(outputDir.FullName, PathTools.Decamel(fileInfo.Name.Substring(0, fileInfo.Name.Length - fileInfo.Extension.Length))));
             if (!templateOutputDir.Exists)
@@ -26,8 +26,11 @@ namespace StaticSiteGenerator.Processor
 
             var target = new FileInfo(Path.Combine(templateOutputDir.FullName, "index.html"));
             stack.Add("output.fullname", target.FullName);
+            stack.Add("output.path", target.FullName.Substring(Program._rootDirectory.FullName.Length).Replace('\\', '/'));
+            stack.Add("output.url", target.FullName.Substring(Program._rootOutputDirectory.FullName.Length).Replace('\\', '/'));
+            stack.Add("output.fullurl", stack.Get("root.url") + stack.Get("output.url"));
 
-            Console.WriteLine($"\tGenerating {stack.Get("page.path")}");
+            Console.WriteLine($"\tGenerating {stack.Get("output.path")}");
 
             StringBuilder sb = new StringBuilder();
             foreach (var element in TemplateTokenizer.ProcessFile(fileInfo))
@@ -81,6 +84,7 @@ namespace StaticSiteGenerator.Processor
                     }
                 }
             }
+            target.CreationTime = fileInfo.LastWriteTime;
             stack.Pop();
 
         }

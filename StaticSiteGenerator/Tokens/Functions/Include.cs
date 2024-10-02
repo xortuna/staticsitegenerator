@@ -3,8 +3,11 @@ using StaticSiteGenerator.Engine;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+
+    [FunctionTokenAttribute("include", 1, 1)]
     internal class Include : FunctionToken
     {
+        protected override string Identifier => "include";
         public Include(List<Token> args) : base(args) {
             if (args.Count != 1) throw new ArgumentException("Invalid arguments for include, expected 1 (partial name)");
         }

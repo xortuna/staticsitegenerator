@@ -3,11 +3,14 @@ using StaticSiteGenerator.Engine;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+    [FunctionTokenAttribute("if", 2, 3)]
     internal class If : FunctionToken
     {
+        protected override string Identifier => "if";
         public If(List<Token> args) : base(args) {
             if (args.Count < 2 || args.Count > 3) throw new ArgumentException("Invalid arguments for if, expected 2-3 (conditon, if true, {if false})");
         }
+
         public override string Execute(DictionaryStack stack)
         {
             var condition = args[0].Execute(stack);

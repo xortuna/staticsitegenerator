@@ -3,8 +3,10 @@ using StaticSiteGenerator.Tokens.Types;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+    [FunctionTokenAttribute("foreach", 2, 3)]
     internal class Foreach : FunctionToken, IStringArray
     {
+        protected override string Identifier => "foreach";
         public Foreach(List<Token> args) : base(args)
         {
             if (args.Count < 2 || args.Count > 3) throw new ArgumentException($"Invalid arguments for foreach expected 2-3 (array, print, {{array variable}}) got {args.Count}");

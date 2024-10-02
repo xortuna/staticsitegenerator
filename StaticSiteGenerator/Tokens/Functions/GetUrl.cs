@@ -1,11 +1,13 @@
-﻿using System.Text;
-using StaticSiteGenerator.Engine;
+﻿using StaticSiteGenerator.Engine;
 using StaticSiteGenerator.Tools;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+
+    [FunctionTokenAttribute("get_url", 1, 1)]
     internal class GetUrl : FunctionToken
     {
+        protected override string Identifier => "get_url";
         public GetUrl(List<Token> args) : base(args) {
             if (args.Count != 1) throw new ArgumentException("Invalid arguments for GetUrl, expected 1 (url)");
         }

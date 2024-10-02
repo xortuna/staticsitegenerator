@@ -24,6 +24,14 @@ namespace StaticSiteGenerator.Tools
             return path.FullName.Substring(root.FullName.Length);
         }
 
+
+        public static string MinifyUrl(string url)
+        {
+            if (url.EndsWith("index.html"))
+                url = url.Substring(0, url.Length - "index.html".Length);
+            return url;
+        }
+
         public static string Decamel(string camel)
         {
             var sb = new StringBuilder();

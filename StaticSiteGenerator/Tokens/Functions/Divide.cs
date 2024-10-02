@@ -6,6 +6,7 @@ using StaticSiteGenerator.Tokens.Types;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+    [FunctionTokenAttribute("divide", 2, 2)]
     internal class Divide : NumericOperator
     {
 
@@ -13,7 +14,7 @@ namespace StaticSiteGenerator.Tokens.Functions
         {
 
         }
-        protected override string Name => "subtract";
+        protected override string Name => "divide";
 
         protected override int PerformIntOperation(int a, int b)
         {

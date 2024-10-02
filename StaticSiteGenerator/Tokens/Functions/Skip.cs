@@ -3,8 +3,10 @@ using StaticSiteGenerator.Tokens.Types;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+    [FunctionTokenAttribute("skip", 2, 2)]
     internal class Skip: FunctionToken, IStringArray
     {
+        protected override string Identifier => "skip";
         public Skip(List<Token> args) : base(args)
         {
             if (args.Count != 2) throw new ArgumentException($"Invalid arguments for Skip expected 2 (array, count) got {args.Count}.");

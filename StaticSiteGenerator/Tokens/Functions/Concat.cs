@@ -4,8 +4,10 @@ using StaticSiteGenerator.Tokens.Types;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+    [FunctionTokenAttribute("concat", 1, 99)]
     internal class Concat : FunctionToken, IStringArray
     {
+        protected override string Identifier => "concat";
         public Concat(List<Token> args) : base(args)
         {
             if (args.Count == 0) throw new ArgumentException("Invalid arguments for Concat Expected >1");

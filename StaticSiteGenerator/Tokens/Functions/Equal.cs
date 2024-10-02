@@ -3,10 +3,12 @@ using StaticSiteGenerator.Engine;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
-    internal class Equals : FunctionToken
+    [FunctionTokenAttribute("equal", 2, 2)]
+    internal class Equal : FunctionToken
     {
-        public Equals(List<Token> args) : base(args) {
-            if (args.Count != 2) throw new ArgumentException("Invalid arguments for equals, expected 2 (a, b)");
+        protected override string Identifier => "equal";
+        public Equal(List<Token> args) : base(args) {
+            if (args.Count != 2) throw new ArgumentException("Invalid arguments for equal, expected 2 (a, b)");
         }
         public override string Execute(DictionaryStack stack)
         {

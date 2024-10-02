@@ -3,8 +3,10 @@ using StaticSiteGenerator.Tokens.Types;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+    [FunctionTokenAttribute("shuffle", 1, 1)]
     internal class Shuffle: FunctionToken, IStringArray
     {
+        protected override string Identifier => "shuffle";
         static Random RND = new Random();
         public Shuffle(List<Token> args) : base(args)
         {

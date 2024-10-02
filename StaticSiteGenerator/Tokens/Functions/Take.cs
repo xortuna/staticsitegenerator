@@ -3,8 +3,10 @@ using StaticSiteGenerator.Tokens.Types;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+    [FunctionTokenAttribute("take", 2, 2)]
     internal class Take: FunctionToken, IStringArray
     {
+        protected override string Identifier => "take";
         public Take(List<Token> args) : base(args)
         {
             if (args.Count != 2) throw new ArgumentException($"Invalid arguments for Take expected 2 (array, count) got {args.Count}.");

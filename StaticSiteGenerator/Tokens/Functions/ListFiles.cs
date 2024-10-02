@@ -3,8 +3,10 @@ using StaticSiteGenerator.Tokens.Types;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+    [FunctionTokenAttribute("list_files", 2, 3)]
     internal class ListFiles : FunctionToken, IStringArray
     {
+        protected override string Identifier => "list_files";
         public ListFiles(List<Token> args) : base(args)
         {
             if (args.Count < 1 || args.Count > 2) throw new ArgumentException("Invalid arguments for listfiles expected 2-3 (path, {filter})");

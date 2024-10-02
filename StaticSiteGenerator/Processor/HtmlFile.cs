@@ -1,9 +1,4 @@
 ﻿using StaticSiteGenerator.Engine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StaticSiteGenerator.Processor
 {
@@ -12,14 +7,17 @@ namespace StaticSiteGenerator.Processor
         internal static void Process(FileInfo fileInfo, DirectoryInfo outputDir, DictionaryStack stack)
         {
             stack.Push();
-            stack.Add("page.fullname", fileInfo.FullName);
-            stack.Add("page.name", fileInfo.Name);
-            stack.Add("page.path", fileInfo.FullName.Substring(Program._rootDirectory.FullName.Length).Replace('\\', '/'));
+            stack.Add("input.fullname", fileInfo.FullName);
+            stack.Add("input.name", fileInfo.Name);
+            stack.Add("input.path", fileInfo.FullName.Substring(Program._rootDirectory.FullName.Length).Replace('\\', '/'));
 
             var target = new FileInfo(Path.Combine(outputDir.FullName, fileInfo.Name));
             stack.Add("output.fullname", target.FullName);
+            stack.Add("output.path", target.FullName.Substring(Program._rootDirectory.FullName.Length).Replace('\\', '/'));
+            stack.Add("output.url", target.FullName.Substring(Program._rootOutputDirectory.FullName.Length).Replace('\\', '/'));
+            stack.Add("output.fullurl", stack.Get("root.url") + stack.Get("output.url"));
 
-            Console.WriteLine($"\tGenerating {stack.Get("page.path")}");
+            Console.WriteLine($"\tGenerating {stack.Get("output.path")}");
             using (var sw = new StreamWriter(target.FullName))
             {
                 foreach (var element in TemplateTokenizer.ProcessFile(fileInfo))
@@ -53,6 +51,8 @@ namespace StaticSiteGenerator.Processor
                     }
                 }
             }
+
+            target.CreationTime = fileInfo.LastWriteTime;
             stack.Pop();
         }
     }

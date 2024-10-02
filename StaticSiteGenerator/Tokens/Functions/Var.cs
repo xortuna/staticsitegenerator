@@ -3,8 +3,11 @@ using StaticSiteGenerator.Engine;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+    [FunctionTokenAttribute("var", 1, 1)]
     internal class Var : FunctionToken
     {
+        protected override string Identifier => "var";
+
         public Var(List<Token> args) : base(args) {
             if (args.Count != 1) throw new ArgumentException("Invalid arguments for var, expected 1 (variable name)");
         }

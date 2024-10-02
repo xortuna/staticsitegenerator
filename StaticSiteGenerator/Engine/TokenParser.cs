@@ -1,5 +1,6 @@
 ﻿using StaticSiteGenerator.Tokens.Functions;
 using StaticSiteGenerator.Tokens.Types;
+using System.Reflection;
 using System.Text;
 
 namespace StaticSiteGenerator.Engine
@@ -12,6 +13,8 @@ namespace StaticSiteGenerator.Engine
 
     abstract class FunctionToken : Token
     {
+        protected abstract string Identifier { get; }
+
         protected List<Token> args;
         public FunctionToken(List<Token> args) { this.args = args; }
     }
@@ -196,8 +199,21 @@ namespace StaticSiteGenerator.Engine
                     return "null";
             }
         }
+        private static Dictionary<string, Type> _tokenTypes = new Dictionary<string, Type>();
+
+        private static void InitaliseTokenTypes()
+        {
+            foreach(var t in Assembly.GetExecutingAssembly().GetTypes().Where(r=> Attribute.IsDefined(r, typeof(FunctionTokenAttribute)) && typeof(FunctionToken).IsAssignableFrom(r)))
+            {
+                var ft = t.GetCustomAttribute<FunctionTokenAttribute>();
+                _tokenTypes.Add(ft.Name, t);
+            }
+        }
         private static Token ResolveFunction(string functionName, List<Token> parameters)
         {
+            if (_tokenTypes.Count == 0)
+                InitaliseTokenTypes();
+
             switch (functionName.ToLower())
             {
                 case "bracket":
@@ -209,67 +225,15 @@ namespace StaticSiteGenerator.Engine
                 case "string":
                     return parameters[0];
 
-                //Math
-                case "add":
-                    return new Add(parameters);
-                case "subtract":
-                    return new Subtract(parameters);
-                case "divide":
-                    return new Divide(parameters);
-                case "multiply":
-                    return new Multiply(parameters);
-
-                //File manipulation
-                case "include":
-                    return new Include(parameters);
-                case "get_url":
-                    return new GetUrl(parameters);
-
-                //String manipulation
-                case "reverse":
-                    return new Reverse(parameters);
-                case "concat":
-                    return new Concat(parameters);
-
-                //Meta Data maipulation
-                case "var":
-                    return new Var(parameters);
-                case "assign":
-                    return new Assign(parameters);
-                case "load_metadata":
-                    return new LoadMetaData(parameters);
-
-                //Conditionals
-                case "equals":
-                    return new Equals(parameters);
-                case "notequal":
-                case "notequals":
-                    return new DoesNotEqual(parameters);
-                case "if":
-                    return new If(parameters);
-                case "starts_with":
-                    return new StartsWith(parameters);
-
-                // Array generator
-                case "to_array":
-                    return new ToArray(parameters);
-                case "list_files":
-                    return new ListFiles(parameters);
-
-                //Array functions
-                case "join":
-                    return new Join(parameters);
-                case "foreach":
-                    return new Foreach(parameters);
-                case "where":
-                    return new Where(parameters);
-                case "skip":
-                    return new Skip(parameters);
-                case "take":
-                    return new Take(parameters);
-                case "shuffle":
-                    return new Shuffle(parameters);
-                default: throw new Exception($"Invalid Function {functionName}");
+                default:
+                    if (!_tokenTypes.ContainsKey(functionName.ToLower()))
+                        throw new Exception($"Invalid Function {functionName}");
+                    var ft = _tokenTypes[functionName.ToLower()].GetCustomAttribute<FunctionTokenAttribute>();
+                    if(parameters.Count < ft.MinArgs || parameters.Count > ft.MaxArgs)
+                    {
+                        throw new Exception($"Invalid arguments for {functionName} - Expected {(ft.MinArgs != ft.MaxArgs ? ft.MinArgs + " to " + ft.MaxArgs : ft.MinArgs )}] got {parameters.Count}");
+                    }
+                    return (FunctionToken)Activator.CreateInstance(_tokenTypes[functionName.ToLower()], parameters);
             }
         }
     }

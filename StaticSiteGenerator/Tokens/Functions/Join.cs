@@ -3,8 +3,11 @@ using StaticSiteGenerator.Tokens.Types;
 
 namespace StaticSiteGenerator.Tokens.Functions
 {
+
+    [FunctionTokenAttribute("join", 1, 2)]
     internal class Join : FunctionToken
     {
+        protected override string Identifier => "join";
         public Join(List<Token> args) : base(args)
         {
             if (args.Count < 1 || args.Count > 2) throw new ArgumentException($"Invalid arguments for join expected 1-2 (array, {{join char}}) got {args.Count}");
