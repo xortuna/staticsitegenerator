@@ -11,5 +11,7 @@
     <PackageReference Include="Markdown" Version="2.2.1" />
     <PackageReference Include="Scriban" Version="5.10.0" />
   </ItemGroup>
-
+    <ItemGroup>
+	    <InternalsVisibleTo Include="$(MSBuildProjectName).Test" />
+    </ItemGroup>
 </Project>

@@ -1,23 +1,33 @@
-﻿using StaticSiteGenerator.Tokens.Functions;
-using StaticSiteGenerator.Tokens.Types;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HeyRed.MarkdownSharp;
+﻿using HeyRed.MarkdownSharp;
 using StaticSiteGenerator.Engine.MarkdownExtensions;
 namespace StaticSiteGenerator.Engine
 {
-    public static class MarkdownParser
+    internal static class MarkdownParser
     {
+        static Markdown _markdownParser = new Markdown();
+        static ImagePixelDensityAutomator? _imageOptimiserProcess;
+
+        public static void Configure(DirectoryInfo root, MarkdownConfig config)
+        {
+            if(config.AutoDetectMutliResolutionImages)
+            {
+                _imageOptimiserProcess = new ImagePixelDensityAutomator(root, true);
+            }
+            if (config.EnablePlugins)
+            {
+                _markdownParser.AddExtension(new Small());
+                _markdownParser.AddExtension(new Achivement());
+                _markdownParser.AddExtension(new DivWrappedImage());
+            }
+        }
+
         public static string CompileText(string markdown)
         {
-            Markdown mark = new Markdown();
-            mark.AddExtension(new Small());
-            mark.AddExtension(new Achivement());
-            mark.AddExtension(new DivWrappedImage());
-            return mark.Transform(markdown);
+            if(_imageOptimiserProcess != null)
+            {
+                markdown = _imageOptimiserProcess.CompileText(markdown);
+            }
+            return _markdownParser.Transform(markdown);
         }
     }
 }

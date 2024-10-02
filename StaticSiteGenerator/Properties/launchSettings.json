@@ -2,7 +2,7 @@
   "profiles": {
     "StaticSiteGenerator": {
       "commandName": "Project",
-      "commandLineArgs": "-w -x https://piste.cloud",
+      "commandLineArgs": "-w -x https://pisteapp.com",
       "workingDirectory": "C:\\Users\\Jack\\source\\repos\\StaticSkiSite"
     }
   }

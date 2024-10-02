@@ -9,237 +9,255 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text;
 
-class Config
+namespace StaticSiteGenerator
 {
-    public bool Watch = false;
-    public bool SiteMap = false;
-    public string BaseUrl = "http://example.com";
-    public List<string> AssetFileTypes = new List<string>() { ".css", ".png", ".svg", ".js", ".webp" };
-}
-
-internal class Program
-{
-    public static Config _config = new Config();
-    public static DirectoryInfo _rootDirectory = null;
-    public static DirectoryInfo _currentDirectory = null;
-    public static Dictionary<string, string> _partial_list;
-
-    private static void Main(string[] args)
+    class MarkdownConfig
     {
-        ProcessArgs(args);
-        _rootDirectory = new DirectoryInfo(Environment.CurrentDirectory);
-        _partial_list = new Dictionary<string, string>();
-        
-        //Find Special folders
-        ProcessSpecialFolders();
+        public bool AutoDetectMutliResolutionImages = true;
+        public bool EnablePlugins = true;
+    }
+    class Config
+    {
+        public readonly MarkdownConfig Markdown = new MarkdownConfig();
+        public bool Watch = false;
+        public bool SiteMap = false;
+        public string BaseUrl = "http://example.com";
+        public List<string> AssetFileTypes = new List<string>() { ".css", ".png", ".svg", ".js", ".webp", ".mp4", ".webm" };
+    }
 
-        DictionaryStack stack = new DictionaryStack();
-        stack.Push();
+    internal class Program
+    {
+        public static Config _config = new Config();
+        public static DirectoryInfo _rootDirectory = null;
+        public static DirectoryInfo _currentDirectory = null;
+        public static Dictionary<string, string> _partial_list;
+
+        private static void Main(string[] args)
+        {
+            ProcessArgs(args);
+            _rootDirectory = new DirectoryInfo(Environment.CurrentDirectory);
+            _partial_list = new Dictionary<string, string>();
+            MarkdownParser.Configure(_rootDirectory, _config.Markdown);
+
+            //Find Special folders
+            ProcessSpecialFolders();
+
+            DictionaryStack stack = new DictionaryStack();
+            stack.Push();
             stack.Add("root.fullpath", _rootDirectory.FullName);
             var output = _rootDirectory.CreateSubdirectory("_www");
-            stack.Push(); 
-                ProcessDirectory(_rootDirectory, output, stack);
+            stack.Push();
+            ProcessDirectory(_rootDirectory, output, stack);
             stack.Pop();
 
-        if (_config.SiteMap)
-            SitemapGenerator.GenerateMap(_config.BaseUrl, output);
+            if (_config.SiteMap)
+                SitemapGenerator.GenerateMap(_config.BaseUrl, output);
 
-        if (_config.Watch)
-            StartWatch(_rootDirectory, output, stack);
-        stack.Pop();
+            if (_config.Watch)
+                StartWatch(_rootDirectory, output, stack);
+            stack.Pop();
 
-    }
-
-
-    private static void ProcessArgs(string[] args)
-    {
-        for (int i = 0; i < args.Length; ++i)
-        {
-            var arg = args[i];
-            switch (arg)
-            {
-                case "-w":
-                    _config.Watch = true;
-                    break;
-                case "-t":
-                    if (args.Length <= i + 1) 
-                        continue;
-                    var toAdd = args[i + 1].Split(",");
-                    _config.AssetFileTypes.AddRange(toAdd);
-                    i++;
-                    break;
-                case "-x":
-                    if (args.Length <= i + 1)
-                        continue;
-                    _config.SiteMap = true;
-                    _config.BaseUrl = args[i+1];
-                    i++;
-                    break;
-                default:
-                    Console.WriteLine($"Unknown argument {arg}");
-                    break;
-            }
         }
-    }
 
-    private static void ProcessSpecialFolders()
-    {
-        foreach (var item in _rootDirectory.EnumerateDirectories())
+
+        private static void ProcessArgs(string[] args)
         {
-            if (item.Name == "_www" || item.Attributes.HasFlag(FileAttributes.Hidden)) continue;
-
-            if (item.Name == "_partial")
+            for (int i = 0; i < args.Length; ++i)
             {
-                foreach (var partial in item.GetFiles())
+                var arg = args[i];
+                switch (arg)
                 {
-                    _partial_list.Add(partial.Name, partial.FullName);
+                    case "-mi":
+                        _config.Markdown.AutoDetectMutliResolutionImages = false;
+                        break;
+                    case "-w":
+                        _config.Watch = true;
+                        break;
+                    case "-t":
+                        if (args.Length <= i + 1)
+                            continue;
+                        var toAdd = args[i + 1].Split(",");
+                        _config.AssetFileTypes.AddRange(toAdd);
+                        i++;
+                        break;
+                    case "-x":
+                        if (args.Length <= i + 1)
+                            continue;
+                        _config.SiteMap = true;
+                        _config.BaseUrl = args[i + 1];
+                        i++;
+                        break;
+                    default:
+                        Console.WriteLine($"Unknown argument {arg}");
+                        break;
                 }
-                Console.WriteLine($"Found {_partial_list.Count} partial");
-                continue;
             }
         }
-        if (Directory.Exists(Path.Join(_rootDirectory.FullName, "_www")))
+
+        private static void ProcessSpecialFolders()
         {
-            Directory.Delete(Path.Join(_rootDirectory.FullName, "_www"), true);
+            foreach (var item in _rootDirectory.EnumerateDirectories())
+            {
+                if (item.Name == "_www" || item.Attributes.HasFlag(FileAttributes.Hidden)) continue;
+
+                if (item.Name == "_partial")
+                {
+                    foreach (var partial in item.GetFiles())
+                    {
+                        _partial_list.Add(partial.Name, partial.FullName);
+                    }
+                    Console.WriteLine($"Found {_partial_list.Count} partial");
+                    continue;
+                }
+            }
+            if (Directory.Exists(Path.Join(_rootDirectory.FullName, "_www")))
+            {
+                Directory.Delete(Path.Join(_rootDirectory.FullName, "_www"), true);
+            }
         }
-    }
 
-    private static void StartWatch(DirectoryInfo root, DirectoryInfo output, DictionaryStack stack)
-    {
-        FileSystemWatcher watcher = new FileSystemWatcher(root.FullName);
-        watcher.NotifyFilter = NotifyFilters.LastWrite;
-        watcher.IncludeSubdirectories = true;
-        watcher.EnableRaisingEvents = true;
-        watcher.Changed += (sender, e) =>
+        private static void StartWatch(DirectoryInfo root, DirectoryInfo output, DictionaryStack stack)
         {
-            var currentFile = new FileInfo(e.FullPath);
-            
-            var directory = currentFile.Directory;
-            var relativePath = PathTools.GetRelativePath(root, directory);
-            if (currentFile.Extension == "" || relativePath.StartsWith("\\_") || relativePath.StartsWith("\\."))
-                return;
-            if (!_config.AssetFileTypes.Contains(currentFile.Extension) && currentFile.Extension != ".md" && currentFile.Extension != ".html")
-                return;
-            var relativeOut = new DirectoryInfo(Path.Join(output.FullName, relativePath));
+            FileSystemWatcher watcher = new FileSystemWatcher(root.FullName);
+            watcher.NotifyFilter = NotifyFilters.LastWrite;
+            watcher.IncludeSubdirectories = true;
+            watcher.EnableRaisingEvents = true;
+            watcher.Changed += (sender, e) =>
+            {
+                var currentFile = new FileInfo(e.FullPath);
 
-            WaitForUnlock(currentFile);
-            stack.Push();
+                var directory = currentFile.Directory;
+                var relativePath = PathTools.GetRelativePath(root, directory);
+                if (currentFile.Extension == "" || relativePath.StartsWith("\\_") || relativePath.StartsWith("\\."))
+                    return;
+                if (!_config.AssetFileTypes.Contains(currentFile.Extension) && currentFile.Extension != ".md" && currentFile.Extension != ".html")
+                    return;
+                var relativeOut = new DirectoryInfo(Path.Join(output.FullName, relativePath));
+
+                WaitForUnlock(currentFile);
+                stack.Push();
+                stack.Add("directory.fullname", directory.FullName);
+                stack.Add("directory.path", relativePath.ToUrlPath());
+                stack.Add("directory.name", directory.Name);
+
+                if (currentFile.Name == "__template.html")
+                {
+                    //Special files
+                    var template = TemplateTokenizer.ProcessFile(new FileInfo(Path.Join(directory.FullName, "__template.html")));
+
+                    //Process MD files using template
+                    foreach (var item in directory.EnumerateFiles("*.md"))
+                    {
+                        MarkdownFile.Process(item, relativeOut, stack, template);
+                    }
+                }
+                else if(currentFile.Name.StartsWith("_"))
+                {
+                    //Ignore this file
+                }
+                else if (currentFile.Extension == ".md")
+                {
+                    //Special files
+                    var template = TemplateTokenizer.ProcessFile(new FileInfo(Path.Join(directory.FullName, "__template.html")));
+
+                    //Process MD files using template
+                    MarkdownFile.Process(currentFile, relativeOut, stack, template);
+                }
+                else if (currentFile.Extension == ".html")
+                {
+                    if (!relativeOut.Exists)
+                        relativeOut.Create();
+                    HtmlFile.Process(currentFile, relativeOut, stack);
+
+                }
+                else if (_config.AssetFileTypes.Contains(currentFile.Extension))
+                {
+                    if (!relativeOut.Exists)
+                        relativeOut.Create();
+                    AssetFile.Process(currentFile, relativeOut, stack);
+                }
+
+                stack.Pop();
+            };
+            Console.WriteLine("Watching directory... Press enter to exit");
+            Console.ReadLine();
+        }
+
+        private static void WaitForUnlock(FileInfo currentFile)
+        {
+            long lastLength = -1;
+            while (true)
+            {
+                if (lastLength == currentFile.Length)
+                {
+                    try
+                    {
+                        using (var r = currentFile.OpenRead())
+                        {
+
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Waiting for {currentFile.Name} to unlock");
+                    }
+                    break;
+                }
+                lastLength = currentFile.Length;
+                Thread.Sleep(150);
+            }
+        }
+
+        private static void ProcessDirectory(DirectoryInfo directory, DirectoryInfo output, DictionaryStack stack)
+        {
+            _currentDirectory = directory;
             stack.Add("directory.fullname", directory.FullName);
-            stack.Add("directory.path", relativePath.ToUrlPath());
+            stack.Add("directory.path", PathTools.GetRelativePath(_rootDirectory, _currentDirectory).ToUrlPath());
             stack.Add("directory.name", directory.Name);
 
-            if (currentFile.Name == "__template.html")
+            Console.WriteLine($"-- {directory.FullName}");
+            //Special files
+            if (Path.Exists(Path.Join(directory.FullName, "__template.html")))
             {
-                //Special files
+                //Load template
                 var template = TemplateTokenizer.ProcessFile(new FileInfo(Path.Join(directory.FullName, "__template.html")));
 
                 //Process MD files using template
                 foreach (var item in directory.EnumerateFiles("*.md"))
                 {
-                    MarkdownFile.Process(item, relativeOut, stack, template);
+                    MarkdownFile.Process(item, output, stack, template);
                 }
             }
-            else if(currentFile.Extension == ".md")
-            {
-                //Special files
-                var template = TemplateTokenizer.ProcessFile(new FileInfo(Path.Join(directory.FullName, "__template.html")));
 
-                //Process MD files using template
-                MarkdownFile.Process(currentFile, relativeOut, stack, template);
-            }
-            else if (currentFile.Extension == ".html") { 
-                    if (!relativeOut.Exists)
-                        relativeOut.Create();
-                    HtmlFile.Process(currentFile, relativeOut, stack);
-
-            }
-            else if (_config.AssetFileTypes.Contains(currentFile.Extension))
+            //HTML Files
+            foreach (var item in directory.EnumerateFiles("*.html"))
             {
-                if (!relativeOut.Exists)
-                    relativeOut.Create();
-                AssetFile.Process(currentFile, relativeOut, stack);
+                if (item.Name.StartsWith("__")) continue;
+                HtmlFile.Process(item, output, stack);
             }
 
-            stack.Pop();
-        };
-        Console.WriteLine("Watching directory... Press enter to exit");
-        Console.ReadLine();
-    }
-
-    private static void WaitForUnlock(FileInfo currentFile)
-    {
-        long lastLength = -1;
-        while (true)
-        {
-            if (lastLength == currentFile.Length)
+            //CONTENT
+            foreach (var item in directory.EnumerateFiles().Where(r => !r.Name.StartsWith("_") && _config.AssetFileTypes.Contains(r.Extension)))
             {
-                try
+                AssetFile.Process(item, output, stack);
+            }
+
+
+            //SUB FOLDERS
+            foreach (var childDir in directory.EnumerateDirectories())
+            {
+                if (childDir.Name.StartsWith("_") || childDir.Name.StartsWith(".") || childDir.Attributes.HasFlag(FileAttributes.Hidden)) continue;
+
+                var subOutput = new DirectoryInfo(Path.Join(output.FullName, childDir.Name));
+                if (!subOutput.Exists)
                 {
-                    using (var r = currentFile.OpenRead())
-                    {
-
-                    }
+                    subOutput.Create();
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Waiting for {currentFile.Name} to unlock");
-                }
-                break;
-            }
-            lastLength = currentFile.Length;
-            Thread.Sleep(150);
-        }
-    }
-
-    private static void ProcessDirectory(DirectoryInfo directory, DirectoryInfo output, DictionaryStack stack)
-    {
-        _currentDirectory = directory;
-        stack.Add("directory.fullname", directory.FullName);
-        stack.Add("directory.path", PathTools.GetRelativePath(_rootDirectory, _currentDirectory).ToUrlPath());
-        stack.Add("directory.name", directory.Name);
-
-        Console.WriteLine($"-- {directory.FullName}");
-        //Special files
-        if (Path.Exists(Path.Join(directory.FullName, "__template.html")))
-        {
-            //Load template
-            var template = TemplateTokenizer.ProcessFile(new FileInfo(Path.Join(directory.FullName, "__template.html")));
-
-            //Process MD files using template
-            foreach (var item in directory.EnumerateFiles("*.md"))
-            {
-                MarkdownFile.Process(item, output, stack, template);
-            }
-        }
-
-        //HTML Files
-        foreach (var item in directory.EnumerateFiles("*.html"))
-        {
-            if (item.Name.StartsWith("__")) continue;
-            HtmlFile.Process(item, output, stack);
-        }
-
-        //CONTENT
-        foreach (var item in directory.EnumerateFiles().Where(r=> _config.AssetFileTypes.Contains(r.Extension)))
-        {
-            AssetFile.Process(item, output, stack);
-        }
-
-
-        //SUB FOLDERS
-        foreach (var childDir in directory.EnumerateDirectories())
-        {
-            if(childDir.Name.StartsWith("_") || childDir.Name.StartsWith(".")  || childDir.Attributes.HasFlag(FileAttributes.Hidden)) continue;
-
-            var subOutput = new DirectoryInfo(Path.Join(output.FullName, childDir.Name));
-            if (!subOutput.Exists)
-            {
-                subOutput.Create();
-            }
-            stack.Push();
+                stack.Push();
                 ProcessDirectory(childDir, subOutput, stack);
-            stack.Pop();
+                stack.Pop();
+            }
         }
-    }
 
+    }
 }
