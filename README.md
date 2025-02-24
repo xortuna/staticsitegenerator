@@ -130,7 +130,7 @@ Variables can also assigned using metadata flags in HTML and Markdown files, thi
 ### Conditionals
 | Function | Arguments | Returns  | Description   |
 | ------------- | ------------- | ------------- | ------------- |
-| equals | LHS,RHS | bool | Returns true if the result of LHS equals the result of RHS  |
+| equal | LHS,RHS | bool | Returns true if the result of LHS equals the result of RHS  |
 | doesnotequal | LHS,RHS | bool | Returns true if the result of LHS does not equal the result of RHS  |
 | if | bool,body if true, [body if false] | Selected Body | Returns the true body or false body depending on the conditional |
 
