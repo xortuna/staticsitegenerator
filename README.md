@@ -59,16 +59,24 @@ _www/blog/posts/mypost2/index.html
 ```
 
 # Templating Engine
-The templating engine has a rather crude and simplistic function resolving system. The most common syntax you'll use is the include("myhtml.html") function to embed other html files into your html file.
+The templating engine has a rather crude and simplistic function resolving system. 
+
+The most common syntax you'll use is the include("myhtml.html") function to embed other html files into your html file.
 
 Basic Synax
 ```
 {{include('myfile.html')}}
 ```
 
+You can also use a linq style syntax where the left hand paramter is deduced from the preceeding 
+
 Linq Synax
 ```
-foreach(list_files('/blog/posts','*.md').where(load_metadata(var('where.key'), equal(var('category'),var('flights')))).take(5),include('_blogpost_stub_horizontal.html')))}}
+{{list_files('/blog/posts','*.md').take(5)}}
+
+Is equivelent to:
+{{take(list_files('/blog/posts','*.md'), 5)}}
+
 ```
 
 When including files certain variables get set and can be retrived or analised in shared templates
