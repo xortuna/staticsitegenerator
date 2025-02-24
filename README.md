@@ -51,10 +51,56 @@ _www/blog/posts/mypost2/index.html
 ## Variables
 The templating engine has a rather crude and simplistic function resolving system. The most common syntax you'll use is the include("myhtml.html") function to embed other html files into your html file.
 
+## Arguments
+
+### Numeric
+| Function | Arguments | Returns  | Description   |
+| ------------- | ------------- | ------------- | ------------- |
+| Add | number1,number2 | number | Adds two numbers together and returns the result |
+| Subtract | number1,number2 | number | Substracts two numbers together and returns the result |
+| Divide | number1,number2 | number | Divides two numbers together and returns the result |
+| Multiply | number1,number2 | number | Multiplys two numbers together and returns the result |
+
+### Variables
+| Function | Arguments | Returns  | Description   |
+| ------------- | ------------- | ------------- | ------------- |
+| Assign | VariableName,value | - | Assigns VariableName to the specified value |
+| Var | VariableName | value | Retrives the value stored under the variable name  |
+
+Variables can also assigned using metadata flags in HTML and Markdown files, this is particually usefull when you want to get a summary information of a file without nesserially parsing the whole file.
+```
+{#VariableName:value#}
+```
+
+| Function | Arguments | Returns  | Description   |
+| ------------- | ------------- | ------------- | ------------- |
+| load_metadata | input filename,body | result of body | Loads the metadata variables from a file into the stack then executes the body statement|
+
+### Conditionals
+| Function | Arguments | Returns  | Description   |
+| ------------- | ------------- | ------------- | ------------- |
+| equals | LHS,RHS | bool | Returns true if the result of LHS equals the result of RHS  |
+| doesnotequal | LHS,RHS | bool | Returns true if the result of LHS does not equal the result of RHS  |
+
+
+### String opertaions
+| Function | Arguments | Returns  | Description   |
+| ------------- | ------------- | ------------- | ------------- |
+| Concat | Str1,Str2,... | String | Concatinates all the paramaters into one string |
+
+
+### Arrays
+| Function | Arguments | Returns  | Description   |
+| ------------- | ------------- | ------------- | ------------- |
+| foreach | array,body,[foreachvariablename(def=foreach)] | array result of body | executes the body for each item in an array, foreach.key and foreach.index are assigend onto the stack|
+
+
 ## Example HTML using templates
+In the spirit of Razor, you can drop in and out of the templating syntax using the escaping sequence {{ }} 
 
 /blog/index.html - Shows a list of recent blog posts
 ``` HTML
+{#page.title:Blog Posts#}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -62,7 +108,7 @@ The templating engine has a rather crude and simplistic function resolving syste
   <!-- Global header includes (JS files, fonts etc) -->
   {{include('_header.html')}}
   <meta name="description" content="List of blog posts published by Piste">
-  <title>Piste: Blog</title>
+  <title>Piste: {{var(page.title)}}</title>
 </head>
 
 <body class="d-flex flex-column min-vh-100">
@@ -135,7 +181,6 @@ Val d'Isere has its own Glacier to rival Tignes's Grand Motte. A high-altitude g
   <!-- Static Top Menu -->
   {{include('_navbar.html')}}
 
-  {{include('_wave.html')}}
   <!-- Content -->
   <div class="content container my-4">
     <!-- Breadcrumb -->
