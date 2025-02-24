@@ -82,30 +82,30 @@ Is equivelent to:
 
 ```
 
-When including files any assigned variables already assigned are automatically applied to the scope of the included file.
+When including files, any assigned variables are still in scope of the included file.
 
-Example of highlighting the current navbar item based on the current directory of the page that *included* the navbar
+Here we are highlighting the current navbar item based on the current directory of the page that *included* the navbar
 ```HTML
 <div class="collapse navbar-collapse" id="navbarNav">
 	<ul class="navbar-nav ms-auto">
     <li class="nav-item">
       <a class="nav-link {{if(equal(var('directory.path'),''),'active','')}}" href="/">
-        <span class="{{if(equal(var('directory.path'),''),'active','')}}">Home</span>
+        <span>Home</span>
       </a>
     </li>
     <li class="nav-item">
       <a class="nav-link {{if(starts_with(var('directory.path'),'/features'),'active')}}" href="/features/">
-        <span class="{{if(starts_with(var('directory.path'),'/features'),'active')}}">Features</span>
+        <span>Features</span>
       </a>
     </li>
     <li class="nav-item">
       <a class="nav-link {{if(starts_with(var('directory.path'),'/download'),'active')}}" href="/download/">
-        <span class="{{if(starts_with(var('directory.path'),'/download'),'active')}}">Download</span>
+        <span>Download</span>
       </a>
     </li>
     <li class="nav-item">
       <a class="nav-link {{if(starts_with(var('directory.path'),'/blog'),'active')}}" href="/blog/">
-        <span class="{{if(starts_with(var('directory.path'),'/blog'),'active')}}">Blog</span>
+        <span>Blog</span>
       </a>
     </li>
   </ul>
@@ -113,7 +113,7 @@ Example of highlighting the current navbar item based on the current directory o
 ```
 
 ## Example HTML using templates
-In the spirit of Razor, you can drop in and out of the templating syntax using the escaping sequence {{ }} 
+You can drop in and out of the templating syntax using the escaping sequence {{ }} 
 
 /blog/index.html - Shows a list of recent blog posts
 ``` HTML
@@ -134,17 +134,7 @@ In the spirit of Razor, you can drop in and out of the templating syntax using t
 
   <!-- Content -->
   <div class="content container my-4">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Blog</li>
-      </ol>
-    </nav>
-
     <h1>New Ski Blog Posts</h1>
-    <p>Sometimes we write stuff about skiing and snowboarding, others we write about whatever takes our fancy! These are
-      our latest and greatest articles for you to check out.</p>
     <div class="row">
       {{foreach(list_files('/blog/posts','*.md'),load_metadata(var('foreach.key'), include('_blogpost_stub.html')))}}
     </div>
@@ -156,7 +146,7 @@ In the spirit of Razor, you can drop in and out of the templating syntax using t
 </html>
 ```
 
-Using load_metadata, the blog posts meta-data variables are ready for our stub to use and display:
+Using load_metadata, the blog posts meta-data variables are loaded and ready for our stub to use and display:
 
 /_partial/_blogpost_stub.html
 ```HTML
