@@ -9,7 +9,7 @@ namespace StaticSiteGenerator.Tokens.Functions
         protected override string Identifier => "foreach";
         public Foreach(List<Token> args) : base(args)
         {
-            if (args.Count < 2 || args.Count > 3) throw new ArgumentException($"Invalid arguments for foreach expected 2-3 (array, print, {{array variable}}) got {args.Count}");
+            if (args.Count < 2 || args.Count > 3) throw new ArgumentException($"Invalid arguments for foreach expected 2-3 (array, body, {{array variable}}) got {args.Count}");
         }
         public override string Execute(DictionaryStack stack)
         {

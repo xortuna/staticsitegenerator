@@ -19,11 +19,12 @@ namespace StaticSiteGenerator.Tokens.Functions
             var target = new FileInfo(Path.Combine(Program._rootDirectory.FullName, "_partial", path));
             if (!target.Exists)
             {
-                throw new ArgumentException("Included file does not exist");
+                throw new ArgumentException($"Included file {target.FullName} does not exist");
             }
 
             stack.Push();
             stack.Add("partial.name", target.Name);
+            stack.Add("partial.fullname", target.FullName);
             StringBuilder sb = new StringBuilder();
             foreach (var element in TemplateTokenizer.ProcessFile(target))
             {
