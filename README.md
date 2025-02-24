@@ -40,12 +40,12 @@ Example Structure for a blog
 When Running the tool a new folder called _www will be created, any assets or HTML files will be copied into the relevent directories, and the Markdown files will be parsed and exploded into subdirectories
 
 ```
-/assets/css/
-/assets/js/
-/assets/image/
-/blog/index.html
-/blog/posts/mypost1/index.html
-/blog/posts/mypost2/index.html
+_www/assets/css/
+_www/assets/js/
+_www/assets/image/
+_www/blog/index.html
+_www/blog/posts/mypost1/index.html
+_www/blog/posts/mypost2/index.html
 ```
 
 ## Variables
