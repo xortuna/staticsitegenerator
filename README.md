@@ -7,7 +7,10 @@ Used to generate the https://pisteapp.com website
 ## Command Line
 
 ```
+cd mysite
 StaticSiteGenerator.exe -w -x "https://mysite.com"
+cd _www
+python3 -m http.server
 ```
 
 ## Arguments
@@ -20,21 +23,28 @@ StaticSiteGenerator.exe -w -x "https://mysite.com"
 
 ## Templates
 
-Any files or folders starting with an underscore are not processed.
-Theres a global template directory called _partial, and a special __template.html file for markdown files. Other than that you can define whatever structure you like.
+The parser supports both HTML and Markdown files. Each file is pre-processed for template tags before being copied to the output folder.
 
+Files and folders starting with an underscore are not copied automatically, but can be referenced.
+
+Theres a global template directory called _partial you can use. 
+
+If using Markdown files, you'll need to define a folder level __template.html file for processing markdown files.
+
+Other than that you can define whatever structure you like for your site.
+ 
 Example Structure for a blog
 ```
-/_partial/_header.html
-/_partial/_footer.html
-/_partial/_navbar.html
-/assets/css/
-/assets/js/
-/assets/image/
-/blog/index.html
-/blog/posts/__template.html
-/blog/posts/mypost1.md
-/blog/posts/mypost2.md
+/_partial/_header.html         Includes our CSS and JS
+/_partial/_footer.html         Includes our copyright etc
+/_partial/_navbar.html         Includes our navigation bar and menu
+/assets/css/                   Contains asset files that are copied
+/assets/js/                    Contains asset files that are copied
+/assets/image/                 Contains asset files that are copied 
+/blog/index.html               Page showing a list of blog posts
+/blog/posts/__template.html    The HTML template the blog posts should use
+/blog/posts/mypost1.md         A blog post content
+/blog/posts/mypost2.md         A blog post content
 ```
 
 When Running the tool a new folder called _www will be created, any assets or HTML files will be copied into the relevent directories, and the Markdown files will be parsed and exploded into subdirectories
@@ -48,8 +58,44 @@ _www/blog/posts/mypost1/index.html
 _www/blog/posts/mypost2/index.html
 ```
 
-## Variables
+# Templating Engine
 The templating engine has a rather crude and simplistic function resolving system. The most common syntax you'll use is the include("myhtml.html") function to embed other html files into your html file.
+
+Basic Synax
+```
+{{include('myfile.html')}}
+```
+
+When including files certain variables get set and can be retrived or analised in shared templates
+
+Example of highlighting the current navbar item based on the current directory of the page that *included* the navbar
+```HTML
+<div class="collapse navbar-collapse" id="navbarNav">
+	<ul class="navbar-nav ms-auto">
+    <li class="nav-item">
+      <a class="nav-link {{if(equal(var('directory.path'),''),'active','')}}" href="/">
+        <span class="{{if(equal(var('directory.path'),''),'active','')}}">Home</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {{if(starts_with(var('directory.path'),'/features'),'active')}}" href="/features/">
+        <span class="{{if(starts_with(var('directory.path'),'/features'),'active')}}">Features</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {{if(starts_with(var('directory.path'),'/download'),'active')}}" href="/download/">
+        <span class="{{if(starts_with(var('directory.path'),'/download'),'active')}}">Download</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {{if(starts_with(var('directory.path'),'/blog'),'active')}}" href="/blog/">
+        <span class="{{if(starts_with(var('directory.path'),'/blog'),'active')}}">Blog</span>
+      </a>
+    </li>
+  </ul>
+</div>
+```
+
 
 ## Arguments
 
@@ -81,18 +127,35 @@ Variables can also assigned using metadata flags in HTML and Markdown files, thi
 | ------------- | ------------- | ------------- | ------------- |
 | equals | LHS,RHS | bool | Returns true if the result of LHS equals the result of RHS  |
 | doesnotequal | LHS,RHS | bool | Returns true if the result of LHS does not equal the result of RHS  |
-
+| if | bool,body if true, [body if false] | Selected Body | Returns the true body or false body depending on the conditional |
 
 ### String opertaions
 | Function | Arguments | Returns  | Description   |
 | ------------- | ------------- | ------------- | ------------- |
 | Concat | Str1,Str2,... | String | Concatinates all the paramaters into one string |
+| Startswith | haystack,needle | Bool | Checks if the haystack starts with needle |
 
 
 ### Arrays
 | Function | Arguments | Returns  | Description   |
 | ------------- | ------------- | ------------- | ------------- |
-| foreach | array,body,[foreachvariablename(def=foreach)] | array result of body | executes the body for each item in an array, foreach.key and foreach.index are assigend for each execution of body|
+| foreach | array,body,[foreachVariableName(def=foreach)] | array result of body | executes the body for each item in an array, the variables foreach.key and foreach.index are assigned before each body is executed|
+| join | array,[seperator(def=,)] | concatinated result | Concatinates each item in the array together using the seperator charater DEF: , (CSV)|
+| reverse | array | array | Reverses the array|
+| shuffle | array | array | Randomises the array|
+| skip | array,count | array | Skips the first X items in an array |
+| take | array,count | array | Takes the first X items in an array |
+| to_array | string | array | Splits a CSV string into an array |
+| where | array, conditional bool, [whereVariableName(def=where) | array | Selects items out that match the conditional, a variable where.key is added to the stack before each conditional is executed, return true to include item |
+
+
+### File Operations
+| Function | Arguments | Returns  | Description   |
+| ------------- | ------------- | ------------- | ------------- |
+| get_url | input path | string | Finds the resultant URL of an input file once processed though the system i.e /blog/posts/markdown1.md -> /blog/posts/markdown1/index.html|
+| include | input path | body | Parses then Prints the included file in place|
+| list_files | input_path,[filter=(def:*)] | array | Lists all files within a directory with an optional filter|
+| minify_url | url | string | Attempts to remove index.html from paths, i.e blog/posts/markdown1/index.html -> blog/posts/markdown1/|
 
 
 ## Example HTML using templates
