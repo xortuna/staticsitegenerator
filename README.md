@@ -119,68 +119,6 @@ Example of highlighting the current navbar item based on the current directory o
 </div>
 ```
 
-
-## Arguments
-
-### Numeric
-| Function | Arguments | Returns  | Description   |
-| ------------- | ------------- | ------------- | ------------- |
-| Add | number1,number2 | number | Adds two numbers together and returns the result |
-| Subtract | number1,number2 | number | Substracts two numbers together and returns the result |
-| Divide | number1,number2 | number | Divides two numbers together and returns the result |
-| Multiply | number1,number2 | number | Multiplys two numbers together and returns the result |
-
-### Variables
-| Function | Arguments | Returns  | Description   |
-| ------------- | ------------- | ------------- | ------------- |
-| Assign | VariableName,value | - | Assigns VariableName to the specified value |
-| Var | VariableName | value | Retrives the value stored under the variable name  |
-
-Variables can also assigned using metadata flags in HTML and Markdown files, this is particually usefull when you want to get a summary information of a file without nesserially parsing the whole file.
-```
-{#VariableName:value#}
-```
-
-| Function | Arguments | Returns  | Description   |
-| ------------- | ------------- | ------------- | ------------- |
-| load_metadata | input filename,body | result of body | Loads the metadata variables from a file into the stack then executes the body statement|
-
-### Conditionals
-| Function | Arguments | Returns  | Description   |
-| ------------- | ------------- | ------------- | ------------- |
-| equal | LHS,RHS | bool | Returns true if the result of LHS equals the result of RHS  |
-| doesnotequal | LHS,RHS | bool | Returns true if the result of LHS does not equal the result of RHS  |
-| if | bool,body if true, [body if false] | Selected Body | Returns the true body or false body depending on the conditional |
-
-### String opertaions
-| Function | Arguments | Returns  | Description   |
-| ------------- | ------------- | ------------- | ------------- |
-| Concat | Str1,Str2,... | String | Concatinates all the paramaters into one string |
-| Startswith | haystack,needle | Bool | Checks if the haystack starts with needle |
-
-
-### Arrays
-| Function | Arguments | Returns  | Description   |
-| ------------- | ------------- | ------------- | ------------- |
-| foreach | array,body,[foreachVariableName(def=foreach)] | array result of body | executes the body for each item in an array, the variables foreach.key and foreach.index are assigned before each body is executed|
-| join | array,[seperator(def=,)] | concatinated result | Concatinates each item in the array together using the seperator charater DEF: , (CSV)|
-| reverse | array | array | Reverses the array|
-| shuffle | array | array | Randomises the array|
-| skip | array,count | array | Skips the first X items in an array |
-| take | array,count | array | Takes the first X items in an array |
-| to_array | string | array | Splits a CSV string into an array |
-| where | array, conditional bool, [whereVariableName(def=where) | array | Selects items out that match the conditional, a variable where.key is added to the stack before each conditional is executed, return true to include item |
-
-
-### File Operations
-| Function | Arguments | Returns  | Description   |
-| ------------- | ------------- | ------------- | ------------- |
-| get_url | input path | string | Finds the resultant URL of an input file once processed though the system i.e /blog/posts/markdown1.md -> /blog/posts/markdown1/index.html|
-| include | input path | body | Parses then Prints the included file in place|
-| list_files | input_path,[filter=(def:*)] | array | Lists all files within a directory with an optional filter|
-| minify_url | url | string | Attempts to remove index.html from paths, i.e blog/posts/markdown1/index.html -> blog/posts/markdown1/|
-
-
 ## Example HTML using templates
 In the spirit of Razor, you can drop in and out of the templating syntax using the escaping sequence {{ }} 
 
@@ -223,6 +161,29 @@ In the spirit of Razor, you can drop in and out of the templating syntax using t
   {{include('_footer.html')}}
 </body>
 </html>
+```
+
+Using load_metadata, the blog posts meta-data variables are ready for our stub to use and display:
+
+/_partial/_blogpost_stub.html
+```HTML
+<div class="row g-0
+  <div class="col-md-4">
+    <img src="{{var('post.image')}}" class="blog-image img-fluid rounded-start" alt="Blog Post Image">
+  </div>
+  <div class="col-md-8">
+    <div class="card-body">
+      <h5 class="card-title">{{var('post.title')}}</h5>
+      <p class="card-text">{{var('post.caption')}}</p>
+      <div class="card-text" style="text-align: right;">
+        <a href="{{get_url(var('foreach.key'))}}"
+          class="btn btn-primary stretched-link float-right">Continue reading...</a>
+        <br />
+        <small class="text-muted">{{var('post.date')}}</small>
+      </div>
+    </div>
+  </div>
+</div>
 ```
 
 ## Example Markdown ##
@@ -304,11 +265,11 @@ Val d'Isere has its own Glacier to rival Tignes's Grand Motte. A high-altitude g
 </html>
 ```
 
-# Variable Scope
+## Variable Scope
 
 The processor pushes and pops variables as it goes though the directories and files, any variables you declare inside a HTML or md file only exists to sub files that are included in within it.
 
-## Root Variables
+### Root Variables
 
 This are available everywhere
 
@@ -319,7 +280,7 @@ This are available everywhere
 | root.output |The full on-disk path of the output directory |
 
 
- ## Directory Variables 
+ ### Directory Variables 
  
  Each time a sub directory is entered the following variables are assigned
  
@@ -329,7 +290,7 @@ This are available everywhere
 | directory.path | The relative "to root" path of the current directory |
 | directory.name |The name of the current directory |
 
-## HTML Input Variables
+### HTML Input Variables
 
  Each time a HTML file is processed the following variables are assigned
  
@@ -344,12 +305,73 @@ This are available everywhere
 | output.fullurl |The full url of the output file generated |
 
 
-## Include Partial variables
+### Include Partial variables
 Each time a Partial file is included the following variables are assigned
  
 | Variable |  Description   |
 | ------------- | ------------- |
 | partial.fullname | The full on-disk path the current input file |
 | partial.name |The name of the current partial file |
+
+
+
+## Functions
+
+### Numeric
+| Function | Arguments | Returns  | Description   |
+| ------------- | ------------- | ------------- | ------------- |
+| Add | number1,number2 | number | Adds two numbers together and returns the result |
+| Subtract | number1,number2 | number | Substracts two numbers together and returns the result |
+| Divide | number1,number2 | number | Divides two numbers together and returns the result |
+| Multiply | number1,number2 | number | Multiplys two numbers together and returns the result |
+
+### Variables
+| Function | Arguments | Returns  | Description   |
+| ------------- | ------------- | ------------- | ------------- |
+| Assign | VariableName,value | - | Assigns VariableName to the specified value |
+| Var | VariableName | value | Retrives the value stored under the variable name  |
+
+Variables can also assigned using metadata flags in HTML and Markdown files, this is particually usefull when you want to get a summary information of a file without nesserially parsing the whole file.
+```
+{#VariableName:value#}
+```
+
+| Function | Arguments | Returns  | Description   |
+| ------------- | ------------- | ------------- | ------------- |
+| load_metadata | input filename,body | result of body | Loads the metadata variables from a file into the stack then executes the body statement|
+
+### Conditionals
+| Function | Arguments | Returns  | Description   |
+| ------------- | ------------- | ------------- | ------------- |
+| equal | LHS,RHS | bool | Returns true if the result of LHS equals the result of RHS  |
+| doesnotequal | LHS,RHS | bool | Returns true if the result of LHS does not equal the result of RHS  |
+| if | bool,body if true, [body if false] | Selected Body | Returns the true body or false body depending on the conditional |
+
+### String opertaions
+| Function | Arguments | Returns  | Description   |
+| ------------- | ------------- | ------------- | ------------- |
+| Concat | Str1,Str2,... | String | Concatinates all the paramaters into one string |
+| Startswith | haystack,needle | Bool | Checks if the haystack starts with needle |
+
+
+### Arrays
+| Function | Arguments | Returns  | Description   |
+| ------------- | ------------- | ------------- | ------------- |
+| foreach | array,body,[foreachVariableName(def=foreach)] | array result of body | executes the body for each item in an array, the variables foreach.key and foreach.index are assigned before each body is executed|
+| join | array,[seperator(def=,)] | concatinated result | Concatinates each item in the array together using the seperator charater DEF: , (CSV)|
+| reverse | array | array | Reverses the array|
+| shuffle | array | array | Randomises the array|
+| skip | array,count | array | Skips the first X items in an array |
+| take | array,count | array | Takes the first X items in an array |
+| to_array | string | array | Splits a CSV string into an array |
+| where | array, conditional bool, [whereVariableName(def=where) | array | Selects items out that match the conditional, a variable where.key is added to the stack before each conditional is executed, return true to include item |
+
+### File Operations
+| Function | Arguments | Returns  | Description   |
+| ------------- | ------------- | ------------- | ------------- |
+| get_url | input path | string | Finds the resultant URL of an input file once processed though the system i.e /blog/posts/markdown1.md -> /blog/posts/markdown1/index.html|
+| include | input path | body | Parses then Prints the included file in place|
+| list_files | input_path,[filter=(def:*)] | array | Lists all files within a directory with an optional filter|
+| minify_url | url | string | Attempts to remove index.html from paths, i.e blog/posts/markdown1/index.html -> blog/posts/markdown1/|
 
 
