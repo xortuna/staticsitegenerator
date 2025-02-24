@@ -1,8 +1,17 @@
-# Static Site Generator for C# #
+# Static Site Generator in C# #
 
 Dirt simple static site generator
 
 Used to generate the https://pisteapp.com website
+
+## Features
+
+* HTML Templating
+* Markdown content
+* Asset copying
+* Easy to use Functions and macros to automate templated elements
+* Context aware variable system  
+* Automatic image resolution selection/webp fallback
 
 ## Command Line
 
