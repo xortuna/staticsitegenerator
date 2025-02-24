@@ -24,14 +24,7 @@ python3 -m http.server
 ## Templates
 
 The parser supports both HTML and Markdown files. Each file is pre-processed for template tags before being copied to the output folder.
-
-Files and folders starting with an underscore are not copied automatically, but can be referenced.
-
-Theres a global template directory called _partial you can use. 
-
-If using Markdown files, you'll need to define a folder level __template.html file for processing markdown files.
-
-Other than that you can define whatever structure you like for your site.
+Files and folders starting with an underscore are not copied automatically, but can be referenced. Theres a global template directory called _partial you can use. 
  
 Example Structure for a blog
 ```
@@ -59,7 +52,7 @@ _www/blog/posts/mypost2/index.html
 ```
 
 # Templating Engine
-The templating engine has a rather crude and simplistic function resolving system. 
+The templating engine has a rather crude and simplistic function resolving system. Templates can be used in all HTML files.
 
 The most common syntax you'll use is the include("myhtml.html") function to embed other html files into your html file.
 
@@ -188,11 +181,13 @@ Using load_metadata, the blog posts meta-data variables are ready for our stub t
 
 ## Example Markdown ##
 
-Markdown files can be used to ease of content creation without the hassle of authoring HTML files. The markdown files get combined with a __template.html file to create a html sub directory.
+Markdown files can be used to ease of content creation without the hassle of authoring individual HTML files. The markdown files get combined with a __template.html file to create a html sub directory.
+
+Traditional templating syntax is not supported in markdown, but the metadata syntax is supported.
 
 e.g mypost.md gets transformed into /mypost/index.html
 
-/blog/posts/mypost1.md An example blog post with meta data prefixed (the metadata is used in the template to set things like the page title etc)
+/blog/posts/mypost1.md An example blog post with meta data prefixed (the metadata is used in the template to describe the page title, post date etc)
 ```MARKDOWN
 {#post.title:Top 5 Ski Runs in Val d'Isère#}
 {#post.date:16 September 2024#}
@@ -211,6 +206,8 @@ Heading off to Val d'Isère or Tignes this year? Don't miss these top runs. From
 
 Val d'Isere has its own Glacier to rival Tignes's Grand Motte. A high-altitude gem that offers spectacular skiing on pristine snow, thanks to its location atop the Pissaillas Glacier. As a blue run, it provides a wide, gentle descent, making it ideal for intermediate skiers while offering stunning panoramic views of the surrounding peaks. The reliable snow conditions and breathtaking scenery make it a must-visit, particularly in the early season when lower-altitude runs may lack coverage. It’s a smooth, enjoyable ride with excellent snow, perfect for skiers looking to experience glacier skiing.
 ```
+
+We obviously want to wrap our blog post into an actual HTML page, so we use use the directory level __template.html to do this.
 
 /blog/posts/__template.html an example template for all blog posts to compile into
 
@@ -282,7 +279,7 @@ This are available everywhere
 
  ### Directory Variables 
  
- Each time a sub directory is entered the following variables are assigned
+ Each time a sub directory is entered the following variables are pushed onto the stack, subdirectories hide the parent directories variables.
  
 | Variable |  Description   |
 | ------------- | ------------- |
@@ -292,7 +289,7 @@ This are available everywhere
 
 ### HTML Input Variables
 
- Each time a HTML file is processed the following variables are assigned
+Each time a HTML file is processed the following variables are assigned
  
 | Variable |  Description   |
 | ------------- | ------------- |
@@ -345,7 +342,7 @@ Variables can also assigned using metadata flags in HTML and Markdown files, thi
 | ------------- | ------------- | ------------- | ------------- |
 | equal | LHS,RHS | bool | Returns true if the result of LHS equals the result of RHS  |
 | doesnotequal | LHS,RHS | bool | Returns true if the result of LHS does not equal the result of RHS  |
-| if | bool,body if true, [body if false] | Selected Body | Returns the true body or false body depending on the conditional |
+| if | bool,body if true, [body if false] | Selected Body | Returns the true body or false body depending on the conditional |0
 
 ### String opertaions
 | Function | Arguments | Returns  | Description   |
