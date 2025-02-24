@@ -92,7 +92,7 @@ Variables can also assigned using metadata flags in HTML and Markdown files, thi
 ### Arrays
 | Function | Arguments | Returns  | Description   |
 | ------------- | ------------- | ------------- | ------------- |
-| foreach | array,body,[foreachvariablename(def=foreach)] | array result of body | executes the body for each item in an array, foreach.key and foreach.index are assigend onto the stack|
+| foreach | array,body,[foreachvariablename(def=foreach)] | array result of body | executes the body for each item in an array, foreach.key and foreach.index are assigend for each execution of body|
 
 
 ## Example HTML using templates
