@@ -68,7 +68,17 @@ Basic Synax
 {{include('myfile.html')}}
 ```
 
-You can also use a linq style syntax where the left hand paramter is deduced from the preceeding 
+Nested Functions are evaluated automatically
+
+Function Syntax
+```
+The answer is: {{add(multiply(2, 2),10)}}
+
+The answer is: 14
+
+```
+
+You can also use a linq style syntax where the left hand paramter is deduced from the preceeding elemtents
 
 Linq Synax
 ```
@@ -79,7 +89,7 @@ Is equivelent to:
 
 ```
 
-When including files certain variables get set and can be retrived or analised in shared templates
+When including files any assigned variables already assigned are automatically applied to the scope of the included file.
 
 Example of highlighting the current navbar item based on the current directory of the page that *included* the navbar
 ```HTML
@@ -293,3 +303,53 @@ Val d'Isere has its own Glacier to rival Tignes's Grand Motte. A high-altitude g
 </body>
 </html>
 ```
+
+# Variable Scope
+
+The processor pushes and pops variables as it goes though the directories and files, any variables you declare inside a HTML or md file only exists to sub files that are included in within it.
+
+## Root Variables
+
+This are available everywhere
+
+| Variable |  Description   |
+| ------------- | ------------- |
+| root.fullpath | The full on-disk path the current working directory (Root) |
+| root.url | The full url of the site root as set by -x |
+| root.output |The full on-disk path of the output directory |
+
+
+ ## Directory Variables 
+ 
+ Each time a sub directory is entered the following variables are assigned
+ 
+| Variable |  Description   |
+| ------------- | ------------- |
+| directory.fullname | The full on-disk path the current input directory |
+| directory.path | The relative "to root" path of the current directory |
+| directory.name |The name of the current directory |
+
+## HTML Input Variables
+
+ Each time a HTML file is processed the following variables are assigned
+ 
+| Variable |  Description   |
+| ------------- | ------------- |
+| input.fullname | The full on-disk path the current input file |
+| input.path | The relative "to root" path of the current file |
+| input.name |The name of the current file |
+| output.fullname | The full on-disk path the current output for the file |
+| output.path | The relative on-disk "to root" path of the output for the file|
+| output.url |The relative url of the output file generated |
+| output.fullurl |The full url of the output file generated |
+
+
+## Include Partial variables
+Each time a Partial file is included the following variables are assigned
+ 
+| Variable |  Description   |
+| ------------- | ------------- |
+| partial.fullname | The full on-disk path the current input file |
+| partial.name |The name of the current partial file |
+
+
