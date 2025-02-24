@@ -66,6 +66,11 @@ Basic Synax
 {{include('myfile.html')}}
 ```
 
+Linq Synax
+```
+foreach(list_files('/blog/posts','*.md').where(load_metadata(var('where.key'), equal(var('category'),var('flights')))).take(5),include('_blogpost_stub_horizontal.html')))}}
+```
+
 When including files certain variables get set and can be retrived or analised in shared templates
 
 Example of highlighting the current navbar item based on the current directory of the page that *included* the navbar
