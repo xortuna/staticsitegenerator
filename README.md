@@ -53,6 +53,7 @@ The templating engine has a rather crude and simplistic function resolving syste
 
 ## Example HTML using templates
 
+/blog/index.html - Shows a list of recent blog posts
 ``` HTML
 <!DOCTYPE html>
 <html lang="en">
@@ -83,6 +84,86 @@ The templating engine has a rather crude and simplistic function resolving syste
       our latest and greatest articles for you to check out.</p>
     <div class="row">
       {{foreach(list_files('/blog/posts','*.md'),load_metadata(var('foreach.key'), include('_blogpost_stub.html')))}}
+    </div>
+  </div>
+
+  <!-- Footer -->
+  {{include('_footer.html')}}
+</body>
+</html>
+```
+
+## Example Markdown ##
+
+Markdown files can be used to ease of content creation without the hassle of authoring HTML files. The markdown files get combined with a __template.html file to create a html sub directory.
+
+e.g mypost.md gets transformed into /mypost/index.html
+
+/blog/posts/mypost1.md An example blog post with meta data prefixed (the metadata is used in the template to set things like the page title etc)
+```MARKDOWN
+{#post.title:Top 5 Ski Runs in Val d'Isère#}
+{#post.date:16 September 2024#}
+{#post.resort:Tignes Val d'Isere#}
+{#post.caption:Did your favorite run make the list?#}
+{#post.image:/assets/image/blog/topskirunvaldisere/header.png#}
+# Top 5 Ski Runs in Val d'Isère
+
+Heading off to Val d'Isère or Tignes this year? Don't miss these top runs. From beginner green to icy half pipes we think you'll find a favourite in our mix.
+
+## 5. Glacier - Val d'Isere
+
+![Glacier](/assets/image/blog/topskirunvaldisere/5.webp)
+
+![float-end inline-image][Map of Glacier Piste](/assets/image/blog/topskirunvaldisere/5_map.png)
+
+Val d'Isere has its own Glacier to rival Tignes's Grand Motte. A high-altitude gem that offers spectacular skiing on pristine snow, thanks to its location atop the Pissaillas Glacier. As a blue run, it provides a wide, gentle descent, making it ideal for intermediate skiers while offering stunning panoramic views of the surrounding peaks. The reliable snow conditions and breathtaking scenery make it a must-visit, particularly in the early season when lower-altitude runs may lack coverage. It’s a smooth, enjoyable ride with excellent snow, perfect for skiers looking to experience glacier skiing.
+```
+
+/blog/posts/__template.html an example template for all blog posts to compile into
+
+```HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{include('_header.html')}}
+  <meta name="description" content="{{var('post.caption')}}">
+  <title>{{var('post.title')}}</title>
+  <link href="/assets/css/piste_blog.css" rel="stylesheet">
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+  <!-- Static Top Menu -->
+  {{include('_navbar.html')}}
+
+  {{include('_wave.html')}}
+  <!-- Content -->
+  <div class="content container my-4">
+    <!-- Breadcrumb -->
+    <div class="row">
+      <div class="col-md-8">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item" aria-current="page"><a href="/blog/">Blog</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{var('post.title')}}</li>
+          </ol>
+        </nav>
+      </div>
+      <div class="col-md-4">
+        <small class="float-end">Posted {{var('post.date')}}</small>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-8">
+        <!-- Insert the markdown body here -->
+        {{var('content')}}
+      </div>
+      <div class="col-md-4 d-none d-md-block">
+        <h2>Related Posts</h2>
+        {{
+        foreach(list_files('/blog/posts','*.md').where(notequal(var('where.key'),var('input.fullname'))).take(5),
+        load_metadata(var('foreach.key'),include('_blogpost_stub_horizontal.html')))}}
+      </div>
     </div>
   </div>
 
