@@ -33,8 +33,8 @@ python3 -m http.server
 ## Templates
 
 The parser supports both HTML and Markdown files. Each file is pre-processed for template tags before being copied to the output folder.
-Files and folders starting with an underscore are not copied automatically, but can be referenced. Theres a global template directory called _partial you can use. 
- 
+Files and folders starting with an underscore are not copied automatically but can be referenced. Theres a global template directory called _partial you can use. 
+
 Example Structure for a blog
 ```
 /_partial/_header.html         Includes our CSS and JS
@@ -49,7 +49,7 @@ Example Structure for a blog
 /blog/posts/mypost2.md         A blog post content
 ```
 
-When Running the tool a new folder called _www will be created, any assets or HTML files will be copied into the relevent directories, and the Markdown files will be parsed and exploded into subdirectories
+When running the tool a new folder called _www will be created, any assets or HTML files will be copied into the relevant directories, and the Markdown files will be parsed and exploded into subdirectories
 
 ```
 _www/assets/css/
@@ -65,7 +65,7 @@ The templating engine has a rather crude and simplistic function resolving syste
 
 The most common syntax you'll use is the include("myhtml.html") function to embed other html files into your html file.
 
-Basic Synax
+Basic Syntax
 ```
 {{include('myfile.html')}}
 ```
@@ -80,13 +80,13 @@ The answer is: 14
 
 ```
 
-You can also use a linq style syntax where the left hand paramter is deduced from the preceeding elemtents
+You can also use LINQ style syntax where the left hand parameter is deduced from the preceding elements
 
-Linq Synax
+Linq Syntax
 ```
 {{list_files('/blog/posts','*.md').take(5)}}
 
-Is equivelent to:
+Is equivalent to:
 {{take(list_files('/blog/posts','*.md'), 5)}}
 
 ```
@@ -206,7 +206,7 @@ Heading off to Val d'Isère or Tignes this year? Don't miss these top runs. From
 Val d'Isere has its own Glacier to rival Tignes's Grand Motte. A high-altitude gem that offers spectacular skiing on pristine snow, thanks to its location atop the Pissaillas Glacier. As a blue run, it provides a wide, gentle descent, making it ideal for intermediate skiers while offering stunning panoramic views of the surrounding peaks. The reliable snow conditions and breathtaking scenery make it a must-visit, particularly in the early season when lower-altitude runs may lack coverage. It’s a smooth, enjoyable ride with excellent snow, perfect for skiers looking to experience glacier skiing.
 ```
 
-We obviously want to wrap our blog post into an actual HTML page, so we use use the directory level __template.html to do this.
+We obviously want to wrap our blog post into an actual HTML page, so we use the directory level __template.html to do this.
 
 /blog/posts/__template.html an example template for all blog posts to compile into
 
@@ -317,9 +317,9 @@ Each time a Partial file is included the following variables are assigned
 | Function | Arguments | Returns  | Description   |
 | ------------- | ------------- | ------------- | ------------- |
 | Add | number1,number2 | number | Adds two numbers together and returns the result |
-| Subtract | number1,number2 | number | Substracts two numbers together and returns the result |
+| Subtract | number1,number2 | number | Subtracts two numbers together and returns the result |
 | Divide | number1,number2 | number | Divides two numbers together and returns the result |
-| Multiply | number1,number2 | number | Multiplys two numbers together and returns the result |
+| Multiply | number1,number2 | number | Multiplies two numbers together and returns the result |
 
 ### Variables
 | Function | Arguments | Returns  | Description   |
