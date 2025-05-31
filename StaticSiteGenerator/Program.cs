@@ -92,6 +92,11 @@ namespace StaticSiteGenerator
                         break;
                     default:
                         Console.WriteLine($"Unknown argument {arg}");
+                        Console.WriteLine($"Available Arguments:");
+                        Console.WriteLine($"-mi\tMulti resolution images off");
+                        Console.WriteLine($"-w\tWatch working directory for changes");
+                        Console.WriteLine($"-t [file extensions]\t List of additional asset files seperated by a comma e.g .csv,.psd");
+                        Console.WriteLine($"-x [Base URL]\tGenerate an XML site map based on the given url");
                         break;
                 }
             }

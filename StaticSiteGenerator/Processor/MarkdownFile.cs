@@ -70,8 +70,21 @@ namespace StaticSiteGenerator.Processor
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine(ex.ToString());
-                                Console.WriteLine($"\t\tat {target.FullName}:line {element.Line} {element.Content}");
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine($"\t\tTheres an error in {target.FullName}: on line {element.Line} with:\n{element.Content}");
+                                Console.ForegroundColor = ConsoleColor.Magenta;
+                                Console.WriteLine($"\t\t{ex.Message.ToString()}");
+                                if (ex.InnerException != null)
+                                    Console.WriteLine(ex.InnerException.Message.ToString());
+
+                                Console.ForegroundColor = ConsoleColor.Yellow;
+                                Console.WriteLine("\t\tCurrent variables");
+                                foreach (var e in stack.GetCurrentElements())
+                                {
+                                    Console.WriteLine($"\t\t{e.Key}: {(e.Value.Length > 100 ? $"{e.Value.Substring(0,50)}..." : e.Value)}");
+                                }
+                                Console.ForegroundColor = ConsoleColor.Gray;
+                                stack.Pop();
                             }
                             break;
                         case TemplateType.Metadata:

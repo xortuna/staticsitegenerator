@@ -17,7 +17,7 @@ namespace StaticSiteGenerator.Tokens.Functions
             var arg = args[0].Execute(stack);
 
             if (!stack.ContainsKey(arg))
-                throw new Exception($"No such paramater {arg}");
+                throw new Exception($"ERROR: Meta data paramater {arg} was not set prior to read");
             return stack.Get(arg);
         }
     }

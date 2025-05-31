@@ -3,6 +3,21 @@
     public class DictionaryStack
     {
         Stack<Dictionary<string, string>> _stack = new Stack<Dictionary<string, string>>();
+        public IEnumerable<KeyValuePair<string, string>> GetCurrentElements()
+        {
+            HashSet<string> outputted = new HashSet<string>();
+            foreach (var element in _stack)
+            {
+                foreach (var key in element)
+                {
+                    if (outputted.Contains(key.Key))
+                        continue;
+                    yield return key;
+                    outputted.Add(key.Key);
+                }
+            }
+        }
+
         public bool ContainsKey(string key, bool multiLevel = true)
         {
             return _stack.Any(r=>r.ContainsKey(key));
