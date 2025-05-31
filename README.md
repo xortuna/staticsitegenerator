@@ -209,9 +209,8 @@ Using inheritance the Nagivation partial's current directory variable contains t
 
 One of the most common templating examples is the need to make a page that shows recent blog posts.
 
-Our blog posts are all written out as markdown files and we want to show the most recent ones.
+Our blog posts are all written out as markdown files and we want to show a collection of the most recent ones for the user to browse though and click, at the root of our Blog we create
 
-At the root of our Blog we create
 /blog/index.html -
 
 We include our headers, a nav bar, a list of recent blog posts and a footer.
