@@ -1,20 +1,22 @@
 # Static Site Generator in C# #
 
-Dirt simple static site generator
+After being frustrated by the complexity and 'time to site' of the most popular templating engines, I found they are not really good fit for any web developers who can already code the page theme in HTML and just want to wrap content in a repeatable way.
 
-Used to generate the https://pisteapp.com website
+Its designed to be dirt simple to use and satisfy the most basic requirements: Page header, nav bar, content and finally page footer. 
+An example of a web page using this is the https://pisteapp.com website.
 
 ## Features
 
 * HTML Templating
 * Markdown content
 * Asset copying
-* Easy to use Functions and macros to automate templated elements
+* Easy to use Functions and macros to automate templated elements 
 * Context aware variable system  
 * Automatic image resolution selection/webp fallback
 
 ## Command Line
 
+Run Static web generator inside any working directory you want to generate your website in.
 ```
 cd mysite
 StaticSiteGenerator.exe -w -x "https://mysite.com"
@@ -30,12 +32,21 @@ python3 -m http.server
 | -t | Add additional asset file types (DEF: ".css", ".png", ".svg", ".js", ".webp", ".mp4", ".webm") |
 | -x "https://mysite.com" | Set the Base URL and generate a sitemap.xml |
 
-## Templates
+## The basics
 
-The parser supports both HTML and Markdown files. Each file is pre-processed for template tags before being copied to the output folder.
-Files and folders starting with an underscore are not copied automatically but can be referenced. Theres a global template directory called _partial you can use. 
+Anything HTML will be copyed into its relative directory inside the output folder (_www/) so legal/eula.html will become _www/legal/eula.html.
+Anything thats an asset (.jpg, .png) will also be copied to the releative location so images/dog.png will become _www/images/dog.png
+Anything you do NOT want copied should start with an underscore e.g _workingSection/mysecret.html will not be copied as its parent folder is exempt.
 
-Example Structure for a blog
+## The Templating
+
+Before your files are copied a parser scans both HTML and Markdown files for templating syntax.
+Files and folders starting with an underscore are not copied automatically but can still be referenced using the templating engine.
+You therefore should put all your reusable components inside the _partial folder, the contents of this special folder is made global and can be included from any other html/md file.
+
+**Important**
+Example Structure for a blog:
+
 ```
 /_partial/_header.html         Includes our CSS and JS
 /_partial/_footer.html         Includes our copyright etc
@@ -49,7 +60,7 @@ Example Structure for a blog
 /blog/posts/mypost2.md         A blog post content
 ```
 
-When running the tool a new folder called _www will be created, any assets or HTML files will be copied into the relevant directories, and the Markdown files will be parsed and exploded into subdirectories
+When running the tool a new folder called _www will be created, any assets or HTML files will be copied into the relevant directories, and Markdown files will be parsed and exploded into subdirectories
 
 ```
 _www/assets/css/
@@ -61,13 +72,21 @@ _www/blog/posts/mypost2/index.html
 ```
 
 # Templating Engine
-The templating engine has a rather crude and simplistic function resolving system. Templates can be used in all HTML files.
 
+The templating engine is basic, and primerially designed to help you automate placing partials around the page based on rules. Templates can be used in all HTML files, they cannot be used in markdown files.
 The most common syntax you'll use is the include("myhtml.html") function to embed other html files into your html file.
 
 Basic Syntax
 ```
-{{include('myfile.html')}}
+<div>
+{{include('helloworld.html')}}
+</div>
+
+Becomes
+
+<div>
+<h1>Hello World</h1>
+</div>
 ```
 
 Nested Functions are evaluated automatically
@@ -75,6 +94,8 @@ Nested Functions are evaluated automatically
 Function Syntax
 ```
 The answer is: {{add(multiply(2, 2),10)}}
+
+Becomes
 
 The answer is: 14
 
@@ -84,16 +105,34 @@ You can also use LINQ style syntax where the left hand parameter is deduced from
 
 Linq Syntax
 ```
+Linq Syntax
 {{list_files('/blog/posts','*.md').take(5)}}
 
-Is equivalent to:
+Basic Syntax:
 {{take(list_files('/blog/posts','*.md'), 5)}}
 
 ```
 
-When including files, any assigned variables are still in scope of the included file.
+## Variables
 
-Here we are highlighting the current navbar item based on the current directory of the page that *included* the navbar
+Variables can be used to store and retrive data, their type is determed by the function using the variable. But conceptually you can treat them as strings.
+
+```
+{{assign('MyVar', 5)}}
+
+The Number is: {{var('MyVar')}}
+
+Becomes
+
+The Number is: 5
+```
+
+When including files, any previously assigned variables are still in scope of the included file. 
+
+
+Here we have a Navigation partial that has a menu, we want the menu to highlight which section of the website we are currently in.
+Using inheritance the Nagivation partial's current directory variable contains the path of the page that *included* the navbar, we test the start of that path so no matter how deep into the navigation all the pages get the correct nav bar highlight.
+
 ```HTML
 <div class="collapse navbar-collapse" id="navbarNav">
 	<ul class="navbar-nav ms-auto">
@@ -121,10 +160,47 @@ Here we are highlighting the current navbar item based on the current directory 
 </div>
 ```
 
-## Example HTML using templates
-You can drop in and out of the templating syntax using the escaping sequence {{ }} 
+Variables can also be generated by functions:
 
-/blog/index.html - Shows a list of recent blog posts
+```
+assign('myArray, to_array('1,2,3'))
+
+foreach(var(myArray),concat('The number is:',var(foreach.key)))
+
+Becomes
+
+The number is: 1
+The number is: 2
+The number is: 3
+
+```
+
+And assigned based on the included file
+
+```
+## Inside index.html
+include('myPartial.html')
+
+## Inside myPartial.html
+My owner is {{var('input.name')}}
+And I am {{var('partial.name')}}
+
+Becomes
+My owner is index.html
+And I am myPartial.html
+```
+
+## Example full HTML using templates
+
+One of the most common templating examples is the need to make a page that shows recent blog posts.
+
+Our blog posts are all written out as markdown files and we want to show the most recent ones.
+
+At the root of our Blog we create
+/blog/index.html -
+
+We include our headers, a nav bar, a list of recent blog posts and a footer.
+
 ``` HTML
 {#page.title:Blog Posts#}
 <!DOCTYPE html>
@@ -155,7 +231,9 @@ You can drop in and out of the templating syntax using the escaping sequence {{ 
 </html>
 ```
 
-Using load_metadata, the blog posts meta-data variables are loaded and ready for our stub to use and display:
+We want each posts link to show the title and a small subtext of what the blog post is about to attract the user to click on ti,
+This is best done as a template stub. But before we include our _blogpost_stub.html, first we need to bring the post's metadata into scope so it can be referenced, we can use load_metadata on our file path (which is stored in the foreach.key variable) to do this.
+Once we've loaded the meta data we can then run the stub which will pull the variables out of the working scope and put them on screen.
 
 /_partial/_blogpost_stub.html
 ```HTML
