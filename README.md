@@ -38,7 +38,7 @@ Anything HTML will be copyed into its relative directory inside the output folde
 Anything thats an asset (.jpg, .png) will also be copied to the releative location so images/dog.png will become _www/images/dog.png
 Anything you do NOT want copied should start with an underscore e.g _workingSection/mysecret.html will not be copied as its parent folder is exempt.
 
-## The Templating
+## The structuring
 
 Before your files are copied a parser scans both HTML and Markdown files for templating syntax.
 Files and folders starting with an underscore are not copied automatically but can still be referenced using the templating engine.
