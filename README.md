@@ -103,7 +103,6 @@ The answer is: 14
 
 You can also use LINQ style syntax where the left hand parameter is deduced from the preceding elements
 
-Linq Syntax
 ```
 Linq Syntax
 {{list_files('/blog/posts','*.md').take(5)}}
@@ -111,6 +110,21 @@ Linq Syntax
 Basic Syntax:
 {{take(list_files('/blog/posts','*.md'), 5)}}
 
+```
+
+Inline Operations
+
+Sometimes its easier to just write operations as you would, remember the operators work left to right so you'll need to use brackets to explicitly define the order of mathmatical operations you may want
+```
+{{4*5+8}}
+
+Outputs
+28
+
+(3-(1+1))
+
+Outputs
+1
 ```
 
 ## Variables
