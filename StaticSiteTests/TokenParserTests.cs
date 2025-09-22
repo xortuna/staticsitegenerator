@@ -17,10 +17,52 @@ namespace StaticSiteTests
             Assert.AreEqual("123", result.Execute(stack));
             stack.Pop();
         }
+
+        [TestMethod]
+        public void CodeblockParsing()
+        {
+            string text = "if(equal('a','a'),'hello');print('world')";
+            var result = TokenParser.CompileCodeBlock(text);
+            Assert.AreEqual("hello world", string.Join(" ", result.Select(r => r.Execute(new StaticSiteGenerator.DictionaryStack()))));
+        }
+
+
+        [TestMethod]
+        public void CodeblockParsingNewLine()
+        {
+            string text = "if(equal('a','a'),'hello');\nprint('world')";
+            var result = TokenParser.CompileCodeBlock(text);
+            Assert.AreEqual("hello world", string.Join(" ", result.Select(r => r.Execute(new StaticSiteGenerator.DictionaryStack()))));
+        }
+
+        [TestMethod]
+        public void CodeblockParsingSpaces()
+        {
+            string text = "   if(equal('a','a'),'hello');\n\r  print('world')";
+            var result = TokenParser.CompileCodeBlock(text);
+            Assert.AreEqual("hello world", string.Join(" ", result.Select(r => r.Execute(new StaticSiteGenerator.DictionaryStack()))));
+        }
+
+        [TestMethod]
+        public void CodeblockParsingEndingFailures()
+        {
+            string text = "   if(equal('a','a'),'hello');\n\r  print('world') \r\n";
+            var result = TokenParser.CompileCodeBlock(text);
+            Assert.AreEqual("hello world", string.Join(" ", result.Select(r => r.Execute(new StaticSiteGenerator.DictionaryStack()))));
+        }
+        [TestMethod]
+        public void CodeblockParsingEndingFailures2()
+        {
+            string text = "   if(equal('a','a'),'hello');\n\r  print('world'); \r\n";
+            var result = TokenParser.CompileCodeBlock(text);
+            Assert.AreEqual("hello world", string.Join(" ", result.Select(r => r.Execute(new StaticSiteGenerator.DictionaryStack()))));
+        }
+
+
         [TestMethod]
         public void BasicSyntax()
         {
-            string text = "if(equals('a','a'),'hello')";
+            string text = "if(equal('a','a'),'hello')";
             var result = TokenParser.CompileV2(text, out int parsedLength);
             Assert.AreEqual("hello", result.Execute(new StaticSiteGenerator.DictionaryStack()));
         }

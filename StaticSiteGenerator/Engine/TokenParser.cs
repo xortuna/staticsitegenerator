@@ -1,6 +1,7 @@
 ﻿using StaticSiteGenerator.Tokens.Functions;
 using StaticSiteGenerator.Tokens.Types;
 using System.Reflection;
+using System.Runtime;
 using System.Text;
 
 namespace StaticSiteGenerator.Engine
@@ -31,10 +32,6 @@ namespace StaticSiteGenerator.Engine
             Operator,
             End
         }
-        public static Token Compile(string escape)
-        {
-            return CompileV2(escape, out int crap);
-        }
         enum ParserState2
         {
             DetectStart, 
@@ -44,6 +41,72 @@ namespace StaticSiteGenerator.Engine
             CheckForOperator,
             HandleOperator,
         }
+        enum MultiLineState 
+        {
+            DetectStart,
+            Recording,
+            StringLitral
+        }
+        public static Token Compile(string escape)
+        {
+            return CompileV2(escape, out _);
+        }
+
+
+        public static IEnumerable<Token> CompileCodeBlock(string token)
+        {
+            //Pull out complete tokens from a token set;
+            int i = 0;
+            MultiLineState state = MultiLineState.DetectStart;
+            StringBuilder sb = new StringBuilder();
+            for (; i < token.Length; ++i)
+            {
+                char c = token[i];
+                switch (state)
+                {
+                    case MultiLineState.DetectStart:
+                        if (c == ' ' || c == '\n' || c == '\r')
+                            continue; //Whitespace stripping
+                        if (c == '\'')
+                        {
+                            state = MultiLineState.StringLitral;
+                        }
+                        if (c == ';')
+                        {
+                            yield return CompileV2(sb.ToString(), out _);
+                            sb.Clear();
+                            continue;
+                        }
+                        sb.Append(c);
+                        state = MultiLineState.Recording;
+                        break;
+                    case MultiLineState.Recording:
+                        if (c == '\'')
+                        {
+                            state = MultiLineState.StringLitral;
+                        }
+                        if (c == ';')
+                        {
+                            yield return CompileV2(sb.ToString(), out _);
+                            sb.Clear();
+                            state = MultiLineState.DetectStart;
+                            continue;
+                        }
+                        sb.Append(c);
+                        break;
+                    case MultiLineState.StringLitral:
+                        if (c == '\'')
+                        {
+                            state = MultiLineState.DetectStart;
+                        }
+                        sb.Append(c);
+                        break;
+                }
+            }
+            if(sb.Length >0)
+                yield return CompileV2(sb.ToString(), out _);
+        }
+
         public static Token CompileV2(string token,  out int parsedLength, List<Token>? preInject = null)
         {
             string functionName = "invalid";

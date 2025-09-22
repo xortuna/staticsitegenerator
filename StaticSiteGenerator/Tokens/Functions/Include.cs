@@ -36,9 +36,10 @@ namespace StaticSiteGenerator.Tokens.Functions
                     case TemplateType.Token:
                         try
                         {
-                            var func = TokenParser.Compile(element.Content);
+                            var func = TokenParser.CompileCodeBlock(element.Content);
                             stack.Push();
-                            sb.Append(func.Execute(stack));
+                            foreach(var token in func)
+                                sb.Append(token.Execute(stack));
                             stack.Pop();
                         }
                         catch (Exception ex)

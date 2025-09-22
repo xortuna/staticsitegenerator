@@ -61,11 +61,12 @@ namespace StaticSiteGenerator.Processor
                             sw.Write(element.Content);
                             break;
                         case TemplateType.Token:
-                            var func = TokenParser.Compile(element.Content);
+                            var func = TokenParser.CompileCodeBlock(element.Content);
                             try
                             {
                                 stack.Push();
-                                sw.Write(func.Execute(stack));
+                                foreach(var token in func)
+                                    sw.Write(token.Execute(stack));
                                 stack.Pop();
                             }
                             catch (Exception ex)

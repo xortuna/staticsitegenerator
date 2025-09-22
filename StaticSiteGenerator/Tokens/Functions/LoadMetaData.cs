@@ -19,7 +19,12 @@ namespace StaticSiteGenerator.Tokens.Functions
         }
         public override string Execute(DictionaryStack stack)
         {
-            FileInfo fi = new FileInfo(args[0].Execute(stack));
+            var path = args[0].Execute(stack);
+            if (path.StartsWith("/"))
+            {
+                path = Path.Combine(Environment.CurrentDirectory, path.Substring(1).Replace("/", "\\"));
+            }
+            FileInfo fi = new FileInfo(path);
             if (!fi.Exists)
                 throw new ArgumentNullException("args", $"File {fi.FullName} does not exist");
 

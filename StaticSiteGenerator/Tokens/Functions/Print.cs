@@ -1,0 +1,20 @@
+﻿using StaticSiteGenerator.Engine;
+using StaticSiteGenerator.Tokens.Types;
+
+namespace StaticSiteGenerator.Tokens.Functions
+{
+
+    [FunctionTokenAttribute("print", 1, 1)]
+    internal class Print : FunctionToken
+    {
+        protected override string Identifier => "print";
+        public Print(List<Token> args) : base(args)
+        {
+            if (args.Count != 1 ) throw new ArgumentException($"Invalid arguments for print expected 1 (string) got {args.Count}");
+        }
+        public override string Execute(DictionaryStack stack)
+        {
+            return args[0].Execute(stack);
+        }
+    }
+}

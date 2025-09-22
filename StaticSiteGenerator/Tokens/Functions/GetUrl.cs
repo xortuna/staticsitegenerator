@@ -14,10 +14,12 @@ namespace StaticSiteGenerator.Tokens.Functions
 
         public override string Execute(DictionaryStack stack)
         {
-            var arg = args[0].Execute(stack);
+            string relative = args[0].Execute(stack);
+            if (relative.Length > 1 && relative[1] == ':') {
+                string rootPath = stack.Get("root.fullpath");
+                relative = relative.Substring(rootPath.Length).ToUrlPath();
+            }
 
-            string rootPath = stack.Get("root.fullpath");
-            var relative = arg.Substring(rootPath.Length).ToUrlPath();
             if (relative.EndsWith(".md"))
             {
                 var ix = relative.LastIndexOf("/");
