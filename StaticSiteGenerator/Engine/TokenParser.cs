@@ -257,7 +257,7 @@ namespace StaticSiteGenerator.Engine
                 case '-': return "subtract";
                 case '/': return "divide";
                 case '*': return "multiply";
-                case '=': return "equals";
+                case '=': return "equal";
                 default:
                     return "null";
             }
