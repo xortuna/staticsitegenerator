@@ -16,6 +16,8 @@ namespace StaticSiteGenerator.Processor
             stack.Add("input.fullname", fileInfo.FullName);
             stack.Add("input.name", fileInfo.Name);
             stack.Add("input.path", fileInfo.FullName.Substring(Program._rootDirectory.FullName.Length).Replace('\\', '/'));
+            stack.Add("input.createdon", fileInfo.CreationTimeUtc.ToString("yyyy-MM-ddTHH:mm:ssZ"));
+            stack.Add("input.modifiedon", fileInfo.LastWriteTimeUtc.ToString("yyyy-MM-ddTHH:mm:ssZ"));
 
             var templateOutputDir = new DirectoryInfo(Path.Join(outputDir.FullName, PathTools.Decamel(fileInfo.Name.Substring(0, fileInfo.Name.Length - fileInfo.Extension.Length))));
             if (!templateOutputDir.Exists)

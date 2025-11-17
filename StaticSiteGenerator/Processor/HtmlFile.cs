@@ -10,6 +10,8 @@ namespace StaticSiteGenerator.Processor
             stack.Add("input.fullname", fileInfo.FullName);
             stack.Add("input.name", fileInfo.Name);
             stack.Add("input.path", fileInfo.FullName.Substring(Program._rootDirectory.FullName.Length).Replace('\\', '/'));
+            stack.Add("input.createdon", fileInfo.CreationTimeUtc.ToString("yyyy-MM-ddTHH:mm:ssZ"));
+            stack.Add("input.modifiedon", fileInfo.LastWriteTimeUtc.ToString("yyyy-MM-ddTHH:mm:ssZ"));
 
             var target = new FileInfo(Path.Combine(outputDir.FullName, fileInfo.Name));
             stack.Add("output.fullname", target.FullName);

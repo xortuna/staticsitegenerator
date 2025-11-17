@@ -391,6 +391,8 @@ Each time a HTML file is processed the following variables are assigned
 | input.fullname | The full on-disk path the current input file |
 | input.path | The relative "to root" path of the current file |
 | input.name |The name of the current file |
+| input.createdon | The date the input file was created on |
+| input.modifiedon | The date the input file was last modified |
 | output.fullname | The full on-disk path the current output for the file |
 | output.path | The relative on-disk "to root" path of the output for the file|
 | output.url |The relative url of the output file generated |
