@@ -39,7 +39,7 @@ namespace StaticSiteGenerator.Engine
                 sb.Append(publicUrl);
                 sb.Append(PathTools.MinifyUrl(PathTools.GetRelativePath(root, file).ToUrlPath()));
                 sb.Append("</loc>");
-                sb.Append($"<lastmod>{file.CreationTime.ToString("yyyy-MM-dd")}</lastmod>");
+                sb.Append($"<lastmod>{file.LastWriteTime.ToString("yyyy-MM-dd")}</lastmod>");
                 sb.AppendLine("</url>");
             }
             foreach (var dir in output.EnumerateDirectories().Where(d => !d.Name.StartsWith("_") || d.Attributes == FileAttributes.Hidden))
