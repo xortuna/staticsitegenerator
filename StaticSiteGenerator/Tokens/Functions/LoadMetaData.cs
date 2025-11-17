@@ -20,7 +20,7 @@ namespace StaticSiteGenerator.Tokens.Functions
         public override string Execute(DictionaryStack stack)
         {
             var path = args[0].Execute(stack);
-            if (path.StartsWith("/"))
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT && path.StartsWith("/"))
             {
                 path = Path.Combine(Environment.CurrentDirectory, path.Substring(1).Replace("/", "\\"));
             }
