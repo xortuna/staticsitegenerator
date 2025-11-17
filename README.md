@@ -419,6 +419,11 @@ Each time a Partial file is included the following variables are assigned
 | Divide | number1,number2 | number | Divides two numbers together and returns the result |
 | Multiply | number1,number2 | number | Multiplies two numbers together and returns the result |
 
+### Date
+| Function | Arguments | Returns  | Description   |
+| ------------- | ------------- | ------------- | ------------- |
+| FormatDate | date,outputformat | string | Prints an ISO date (yyyy-MM-dd HH:mm:ss) in the specified Microsoft.Date format |
+
 ### Variables
 | Function | Arguments | Returns  | Description   |
 | ------------- | ------------- | ------------- | ------------- |
@@ -458,6 +463,8 @@ Variables can also assigned using metadata flags in HTML and Markdown files, thi
 | skip | array,count | array | Skips the first X items in an array |
 | take | array,count | array | Takes the first X items in an array |
 | to_array | string | array | Splits a CSV string into an array |
+| orderby | array, selector, [desc(def=asc)] | array | Orders items in the array, using the selector with orderby.key passed |
+| orderby_metadata | array, metadata_value, [desc(def=asc)] | array | Assumes the incoming array is a file array, orders by a metadata variable in the file |
 | where | array, conditional bool, [whereVariableName(def=where) | array | Selects items out that match the conditional, a variable where.key is added to the stack before each conditional is executed, return true to include item |
 
 ### File Operations
