@@ -15,7 +15,7 @@ namespace StaticSiteGenerator.Tokens.Functions
         public override string Execute(DictionaryStack stack)
         {
             string relative = args[0].Execute(stack);
-            if (relative.Length > 1 && relative[1] == ':') {
+            if (relative.Length > 1 && relative.StartsWith(stack.Get("root.fullpath"))) {
                 string rootPath = stack.Get("root.fullpath");
                 relative = relative.Substring(rootPath.Length).ToUrlPath();
             }

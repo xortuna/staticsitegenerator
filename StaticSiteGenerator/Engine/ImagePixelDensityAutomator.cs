@@ -70,7 +70,7 @@ namespace StaticSiteGenerator.Engine
                             twoXImage = multiRez;
                         }
                     }
-                    if(_upgradeToWebP && fi.Extension != ".webm")
+                    if(_upgradeToWebP && fi.Extension != ".webp")
                     {
                         var webM = new FileInfo(Path.Combine(fi.Directory.FullName, fi.Name.Substring(0, fi.Name.Length - extension.Length) + ".webp"));
                         if (webM.Exists)
