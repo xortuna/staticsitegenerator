@@ -1,9 +1,9 @@
 # Static Site Generator in C# #
 
-After being frustrated by the complexity and 'time to site' of the most popular templating engines, I found they are not really good fit for any web developers who can already code the page theme in HTML and just want to wrap content in a repeatable way.
+After being frustrated by the complexity and 'time to site' of the most popular templating engines, I found they are not really good fit for any web developers who already have their HTML and just want to wrap content in a repeatable way.
 
 Its designed to be dirt simple to use and satisfy the most basic requirements: Page header, nav bar, content and finally page footer. 
-An example of a web page using this is the https://pisteapp.com website.
+The project was primarily built to generate the https://pisteapp.com website.
 
 ## Features
 
@@ -463,9 +463,9 @@ Variables can also assigned using metadata flags in HTML and Markdown files, thi
 | skip | array,count | array | Skips the first X items in an array |
 | take | array,count | array | Takes the first X items in an array |
 | to_array | string | array | Splits a CSV string into an array |
-| orderby | array, selector, [desc(def=asc)] | array | Orders items in the array, using the selector with orderby.key passed |
-| orderby_metadata | array, metadata_value, [desc(def=asc)] | array | Assumes the incoming array is a file array, orders by a metadata variable in the file |
-| where | array, conditional bool, [whereVariableName(def=where) | array | Selects items out that match the conditional, a variable where.key is added to the stack before each conditional is executed, return true to include item |
+| orderby | array, selector, [desc|asc] | array | Orders items in the array, using the selector with orderby.key passed |
+| orderby_metadata | array, metadata_value, [desc|asc] | array | Assumes the incoming array is a file array, orders by a metadata variable in the file |
+| where | array, conditional bool, [whereVariableName(def=where.key) | array | Selects items out that match the conditional, a variable where.key is added to the stack before each conditional is executed, return true to include item |
 
 ### File Operations
 | Function | Arguments | Returns  | Description   |
