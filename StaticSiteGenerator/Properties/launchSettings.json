@@ -2,11 +2,8 @@
   "profiles": {
     "StaticSiteGenerator": {
       "commandName": "Project",
-      "commandLineArgs": "-w -x \"https://pisteapp.com\"",
-      "workingDirectory": "C:\\Users\\Jack\\source\\repos\\StaticSkiSite",
-      "environmentVariables": {
-        "WINDOWS": "1"
-      }
+      "commandLineArgs": "-w -x \"https://pisteapp.com\" -t \".jpg,.gif\"",
+      "workingDirectory": "/home/jack/source/StaticSkiSite"
     }
   }
 }

@@ -1,13 +1,6 @@
-﻿using StaticSiteGenerator;
-using StaticSiteGenerator.Engine;
+﻿using StaticSiteGenerator.Engine;
 using StaticSiteGenerator.Processor;
-using StaticSiteGenerator.Tokens.Functions;
 using StaticSiteGenerator.Tools;
-using System.Data.Common;
-using System.IO;
-using System.Reflection;
-using System.Reflection.Metadata;
-using System.Text;
 
 namespace StaticSiteGenerator
 {
@@ -136,7 +129,7 @@ namespace StaticSiteGenerator
 
                 var directory = currentFile.Directory;
                 var relativePath = PathTools.GetRelativePath(root, directory);
-                if (currentFile.Extension == "" || relativePath.StartsWith("\\_") || relativePath.StartsWith("\\."))
+                if (currentFile.Extension == "" || relativePath.StartsWith("\\_") || relativePath.StartsWith("/_")  || relativePath.StartsWith("/.")  || relativePath.StartsWith("\\."))
                     return;
                 if (!_config.AssetFileTypes.Contains(currentFile.Extension) && currentFile.Extension != ".md" && currentFile.Extension != ".html")
                     return;
